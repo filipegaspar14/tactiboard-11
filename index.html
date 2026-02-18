@@ -6,129 +6,25 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-  body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: #f8f9fa;
-    color: #111;
-  }
-  header {
-    padding: 16px;
-    background: #22c55e;
-    text-align: center;
-    font-size: 26px;
-    font-weight: bold;
-    color: white;
-  }
-  .container {
-    display: flex;
-    gap: 24px;
-    padding: 20px;
-    max-width: 1400px;
-    margin: auto;
-  }
-  .sidebar {
-    width: 340px;
-    background: #e0f2e9;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-  }
-  .sidebar input,
-  .sidebar select {
-    width: 100%;
-    margin-bottom: 12px;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-  }
-  .sidebar button {
-    width: 100%;
-    padding: 12px;
-    margin: 6px 0;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  .sidebar button.primary   { background: #16a34a; color: white; }
-  .sidebar button.secondary { background: #6b7280; color: white; }
-  .sidebar button.danger    { background: #ef4444; color: white; }
+  body { margin:0; font-family:'Segoe UI',sans-serif; background:#f8f9fa; color:#111; }
+  header { padding:16px; background:#22c55e; text-align:center; font-size:26px; font-weight:bold; color:white; }
+  .container { display:flex; gap:24px; padding:20px; max-width:1400px; margin:auto; }
+  .sidebar { width:340px; background:#e0f2e9; padding:20px; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.08); }
+  .sidebar input, .sidebar select { width:100%; margin-bottom:12px; padding:10px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box; }
+  .sidebar button { width:100%; padding:12px; margin:6px 0; border:none; border-radius:8px; font-weight:bold; cursor:pointer; }
+  .sidebar button.primary   { background:#16a34a; color:white; }
+  .sidebar button.secondary { background:#6b7280; color:white; }
+  .sidebar button.danger    { background:#ef4444; color:white; }
 
-  .player-slot {
-    display: flex;
-    align-items: center;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    margin: 6px 0;
-    padding: 6px;
-    font-weight: bold;
-    cursor: grab;
-  }
-  .player-number {
-    width: 36px;
-    text-align: center;
-    background: #dcfce7;
-    border-radius: 4px;
-    padding: 4px 0;
-    margin-right: 8px;
-    color: #166534;
-    font-size: 15px;
-  }
-  .player-name {
-    flex: 1;
-    padding: 6px;
-    border-radius: 4px;
-    min-height: 24px;
-  }
-  .player-name[contenteditable="true"]:focus {
-    outline: 2px solid #16a34a;
-    background: #f0fdf4;
-  }
+  .player-slot { display:flex; align-items:center; background:white; border:1px solid #ddd; border-radius:6px; margin:6px 0; padding:6px; font-weight:bold; cursor:grab; }
+  .player-number { width:36px; text-align:center; background:#dcfce7; border-radius:4px; padding:4px 0; margin-right:8px; color:#166534; font-size:15px; }
+  .player-name { flex:1; padding:6px; border-radius:4px; min-height:24px; }
+  .player-name[contenteditable="true"]:focus { outline:2px solid #16a34a; background:#f0fdf4; }
 
-  .field-container {
-    flex: 1;
-    text-align: center;
-  }
-  .field {
-    width: 920px;
-    height: 520px;
-    background: #86efac;
-    margin: auto;
-    position: relative;
-    border: 4px solid #14532d;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-  }
-  .player {
-    position: absolute;
-    width: 76px;
-    height: 46px;
-    border-radius: 10px;
-    text-align: center;
-    line-height: 46px;
-    font-size: 13px;
-    font-weight: bold;
-    cursor: move;
-    background: rgba(255,255,255,0.94);
-    color: #111;
-    border: 1px solid #555;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-    user-select: none;
-  }
-  .player::before {
-    content: attr(data-pos);
-    position: absolute;
-    top: -20px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 11px;
-    color: #222;
-    font-weight: normal;
-  }
+  .field-container { flex:1; text-align:center; }
+  .field { width:920px; height:520px; background:#86efac; margin:auto; position:relative; border:4px solid #14532d; border-radius:8px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.15); }
+  .player { position:absolute; width:76px; height:46px; border-radius:10px; text-align:center; line-height:46px; font-size:13px; font-weight:bold; cursor:move; background:rgba(255,255,255,0.94); color:#111; border:1px solid #555; box-shadow:0 2px 8px rgba(0,0,0,0.25); user-select:none; }
+  .player::before { content:attr(data-pos); position:absolute; top:-20px; left:50%; transform:translateX(-50%); font-size:11px; color:#222; font-weight:normal; }
 </style>
 </head>
 <body>
@@ -142,7 +38,7 @@
     <input type="date" id="matchDate">
     <input type="text" id="competition" placeholder="Competição">
 
-    <select id="formation">
+    <select id="formation" onchange="generateFormation()">
       <option value="352Atual" selected>3-5-2 ATUAL (Preset)</option>
       <option value="433">4-3-3</option>
       <option value="442">4-4-2</option>
@@ -155,14 +51,12 @@
     <button class="danger" onclick="resetAll()">Reset total</button>
     <button class="primary" onclick="downloadPDF()">Download PDF</button>
 
-    <div style="margin-top: 24px;">
+    <div style="margin-top:24px;">
       <h3>Plantel (1–18)</h3>
       <div id="playerList"></div>
       <input type="text" id="newPlayer" placeholder="Adicionar jogador extra (19+)">
       <button class="primary" onclick="addExtraPlayer()">Adicionar extra</button>
-      <p style="font-size:12px; color:#555; margin-top:8px;">
-        Edita os nomes • Arrasta para o campo
-      </p>
+      <p style="font-size:12px; color:#555; margin-top:8px;">Edita os nomes • Arrasta para ajustar</p>
     </div>
   </div>
 
@@ -177,9 +71,7 @@ let draggedElement = null;
 let offsetX, offsetY;
 let playerNames = Array(18).fill("");
 
-// =============================================
-// Campo FIFA correto – só linhas/base, sem texto
-// =============================================
+// Desenhar linhas do campo (versão corrigida anterior)
 function drawFieldLines() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("width", "100%");
@@ -189,53 +81,37 @@ function drawFieldLines() {
   svg.style.left = "0";
   svg.style.pointerEvents = "none";
 
-  const w = 920;   // largura canvas
-  const h = 520;   // altura canvas
-
-  // Escalas separadas (FIFA: 105 m comprimento × 68 m largura)
+  const w = 920, h = 520;
   const scaleX = w / 105;
   const scaleY = h / 68;
 
   const lines = [];
 
-  // Contorno exterior
   lines.push(`<rect x="0" y="0" width="${w}" height="${h}" fill="none" stroke="#ffffff" stroke-width="4" opacity="0.85"/>`);
-
-  // Linha de meio-campo + círculo central
   lines.push(`<line x1="${w/2}" y1="0" x2="${w/2}" y2="${h}" stroke="#ffffff" stroke-width="3" opacity="0.75"/>`);
   lines.push(`<circle cx="${w/2}" cy="${h/2}" r="${9.15 * scaleX}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.75"/>`);
   lines.push(`<circle cx="${w/2}" cy="${h/2}" r="3" fill="#ffffff"/>`);
 
-  // Áreas penais grandes (16.5 m profundidade × 40.32 m largura)
   const paDepth = 16.5 * scaleX;
   const paWidth = 40.32 * scaleY;
   lines.push(`<rect x="0" y="${(h - paWidth)/2}" width="${paDepth}" height="${paWidth}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
   lines.push(`<rect x="${w - paDepth}" y="${(h - paWidth)/2}" width="${paDepth}" height="${paWidth}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
 
-  // Áreas pequenas / baliza (5.5 m profundidade × 18.32 m largura)
   const gaDepth = 5.5 * scaleX;
   const gaWidth = 18.32 * scaleY;
   lines.push(`<rect x="0" y="${(h - gaWidth)/2}" width="${gaDepth}" height="${gaWidth}" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.8"/>`);
   lines.push(`<rect x="${w - gaDepth}" y="${(h - gaWidth)/2}" width="${gaDepth}" height="${gaWidth}" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.8"/>`);
 
-  // Pontos de penálti (11 m da linha de fundo)
   const penSpot = 11 * scaleX;
   lines.push(`<circle cx="${penSpot}" cy="${h/2}" r="2.5" fill="#ffffff"/>`);
   lines.push(`<circle cx="${w - penSpot}" cy="${h/2}" r="2.5" fill="#ffffff"/>`);
 
-  // Arcos da área penal (raio 9.15 m a partir do ponto de penálti) – abrem para FORA
   const arcRadius = 9.15 * scaleX;
-  const arcWidthOffset = 18.3 * scaleY;  // ~ largura do arco (diâmetro ~18.3 m)
+  lines.push(`<path d="M ${penSpot} ${h/2} A ${arcRadius} ${arcRadius} 0 0 1 ${penSpot + 18.3 * scaleY} ${h/2 - 9.15 * scaleY}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
+  lines.push(`<path d="M ${penSpot} ${h/2} A ${arcRadius} ${arcRadius} 0 0 0 ${penSpot + 18.3 * scaleY} ${h/2 + 9.15 * scaleY}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
+  lines.push(`<path d="M ${w - penSpot} ${h/2} A ${arcRadius} ${arcRadius} 0 0 0 ${w - penSpot - 18.3 * scaleY} ${h/2 - 9.15 * scaleY}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
+  lines.push(`<path d="M ${w - penSpot} ${h/2} A ${arcRadius} ${arcRadius} 0 0 1 ${w - penSpot - 18.3 * scaleY} ${h/2 + 9.15 * scaleY}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
 
-  // Lado esquerdo – arco abre para a DIREITA (fora da área)
-  lines.push(`<path d="M ${penSpot} ${h/2} A ${arcRadius} ${arcRadius} 0 0 1 ${penSpot + arcRadius*2} ${h/2 - arcWidthOffset/2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
-  lines.push(`<path d="M ${penSpot} ${h/2} A ${arcRadius} ${arcRadius} 0 0 0 ${penSpot + arcRadius*2} ${h/2 + arcWidthOffset/2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
-
-  // Lado direito – arco abre para a ESQUERDA (fora da área)
-  lines.push(`<path d="M ${w - penSpot} ${h/2} A ${arcRadius} ${arcRadius} 0 0 0 ${w - penSpot - arcRadius*2} ${h/2 - arcWidthOffset/2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
-  lines.push(`<path d="M ${w - penSpot} ${h/2} A ${arcRadius} ${arcRadius} 0 0 1 ${w - penSpot - arcRadius*2} ${h/2 + arcWidthOffset/2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
-
-  // Arcos de canto (raio 1 m)
   const cornerR = 1 * scaleX;
   lines.push(`<path d="M 0 0 A ${cornerR} ${cornerR} 0 0 1 ${cornerR*2} ${cornerR*2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.7"/>`);
   lines.push(`<path d="M ${w} 0 A ${cornerR} ${cornerR} 0 0 0 ${w - cornerR*2} ${cornerR*2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.7"/>`);
@@ -246,8 +122,7 @@ function drawFieldLines() {
   field.appendChild(svg);
 }
 
-// (o resto do código continua igual ao anterior – plantel, drag, PDF, etc.)
-
+// Plantel (slots 1-18)
 function initPlantel() {
   const list = document.getElementById("playerList");
   list.innerHTML = "";
@@ -285,7 +160,6 @@ function initPlantel() {
 function addExtraPlayer() {
   const val = document.getElementById("newPlayer").value.trim();
   if (!val) return;
-
   const slot = document.createElement("div");
   slot.className = "player-slot";
   slot.draggable = true;
@@ -311,6 +185,7 @@ function addExtraPlayer() {
   document.getElementById("newPlayer").value = "";
 }
 
+// Formações – posições relativas (0-1)
 const formations = {
   "352Atual": [
     [0.06, 0.50], [0.22, 0.32], [0.22, 0.50], [0.22, 0.68],
@@ -328,19 +203,20 @@ function generateFormation() {
   drawFieldLines();
 
   const key = document.getElementById("formation").value;
-  const pos = formations[key] || formations["352Atual"];
+  const posArray = formations[key] || formations["352Atual"];
 
-  pos.forEach((p, i) => {
-    if (i >= 11) return;
+  posArray.forEach((relPos, i) => {
+    if (i >= 11) return; // só 11 jogadores
 
     const div = document.createElement("div");
     div.className = "player";
     div.contentEditable = true;
     div.dataset.pos = (i + 1).toString();
     div.dataset.plantelIndex = i.toString();
-    div.innerText = playerNames[i] || "";
-    div.style.left = (p[0] * w) + "px";
-    div.style.top  = (p[1] * h) + "px";
+    div.innerText = playerNames[i] || "";  // preenche logo se existir nome no plantel
+
+    div.style.left = (relPos[0] * 920) + "px";
+    div.style.top  = (relPos[1] * 520) + "px";
 
     makeDraggable(div);
     field.appendChild(div);
@@ -356,6 +232,7 @@ function syncFieldNames() {
   });
 }
 
+// Drag & Drop (mantido igual ao anterior – arrastar do plantel ou mover no campo)
 field.addEventListener("dragover", e => e.preventDefault());
 
 field.addEventListener("drop", e => {
@@ -378,7 +255,7 @@ field.addEventListener("drop", e => {
 
   const rect = field.getBoundingClientRect();
   let left = e.clientX - rect.left - 38;
-  let top  = e.clientY - rect.top  - 23;
+  let top  = e.clientY - rect.top - 23;
   left = Math.max(0, Math.min(920-76, Math.round(left/20)*20));
   top  = Math.max(0, Math.min(520-46, Math.round(top/20)*20));
 
@@ -390,7 +267,7 @@ field.addEventListener("drop", e => {
   if (existing) {
     existing.innerText = name;
     existing.style.left = left + "px";
-    existing.style.top  = top  + "px";
+    existing.style.top = top + "px";
     return;
   }
 
@@ -401,7 +278,7 @@ field.addEventListener("drop", e => {
   div.dataset.pos = "?";
   if (plantelIdx !== null) div.dataset.plantelIndex = plantelIdx;
   div.style.left = left + "px";
-  div.style.top  = top + "px";
+  div.style.top = top + "px";
 
   makeDraggable(div);
   field.appendChild(div);
@@ -427,18 +304,18 @@ function makeDraggable(el) {
     const clientX = e.clientX || (e.touches && e.touches[0].clientX);
     const clientY = e.clientY || (e.touches && e.touches[0].clientY);
     let newLeft = clientX - offsetX - field.getBoundingClientRect().left;
-    let newTop  = clientY - offsetY - field.getBoundingClientRect().top;
+    let newTop = clientY - offsetY - field.getBoundingClientRect().top;
 
     newLeft = Math.round(newLeft / 20) * 20;
-    newTop  = Math.round(newTop  / 20) * 20;
+    newTop = Math.round(newTop / 20) * 20;
     newLeft = Math.max(0, Math.min(920-76, newLeft));
-    newTop  = Math.max(0, Math.min(520-46, newTop));
+    newTop = Math.max(0, Math.min(520-46, newTop));
 
     el.style.left = newLeft + "px";
-    el.style.top  = newTop + "px";
+    el.style.top = newTop + "px";
   };
 
-  const end = () => { isDragging = false; };
+  const end = () => isDragging = false;
 
   el.addEventListener("mousedown", start);
   el.addEventListener("touchstart", start, {passive: false});
@@ -448,6 +325,7 @@ function makeDraggable(el) {
   document.addEventListener("touchend", end);
 }
 
+// Limpar / Reset
 function clearPositions() {
   field.innerHTML = "";
   drawFieldLines();
@@ -461,7 +339,7 @@ function resetAll() {
   document.getElementById("competition").value = "";
   playerNames.fill("");
   initPlantel();
-  clearPositions();
+  generateFormation();  // recria com formação atual
 }
 
 async function downloadPDF() {
@@ -473,11 +351,11 @@ async function downloadPDF() {
   let y = 12;
 
   const info = [
-    ["Equipa",     document.getElementById("teamName").value     || "—"],
-    ["Adversário", document.getElementById("opponent").value     || "—"],
-    ["Data",       document.getElementById("matchDate").value    || "—"],
-    ["Competição", document.getElementById("competition").value  || "—"],
-    ["Formação",   document.getElementById("formation").value    || "—"]
+    ["Equipa", document.getElementById("teamName").value || "—"],
+    ["Adversário", document.getElementById("opponent").value || "—"],
+    ["Data", document.getElementById("matchDate").value || "—"],
+    ["Competição", document.getElementById("competition").value || "—"],
+    ["Formação", document.getElementById("formation").value || "—"]
   ];
 
   info.forEach(([k, v]) => {
@@ -492,9 +370,10 @@ async function downloadPDF() {
   pdf.save("TactiBoard_CampoVerde.pdf");
 }
 
-// Inicialização
+// Início
 initPlantel();
 drawFieldLines();
+generateFormation();  // gera logo a formação inicial
 </script>
 </body>
 </html>
