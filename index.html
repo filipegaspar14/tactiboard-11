@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>TactiBoard 11 Pro</title>
+<title>TactiBoard 11 Personal</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -124,7 +124,7 @@ header {
 
 <body>
 
-<header>⚽ TactiBoard 11 PRO</header>
+<header>⚽ TactiBoard 11 – Pessoal</header>
 
 <div class="container">
 
@@ -189,18 +189,10 @@ function generateFormation() {
   const formation = document.getElementById("formation").value;
   let positions = [];
 
-  if (formation === "433") {
-    positions = [[50,250],[200,80],[200,200],[200,320],[200,440],[400,120],[400,250],[400,380],[650,80],[650,250],[650,420]];
-  }
-  if (formation === "442") {
-    positions = [[50,250],[200,80],[200,200],[200,320],[200,440],[400,80],[400,200],[400,320],[400,440],[650,170],[650,330]];
-  }
-  if (formation === "352") {
-    positions = [[50,250],[200,150],[200,250],[200,350],[400,60],[400,160],[400,250],[400,340],[400,440],[650,180],[650,320]];
-  }
-  if (formation === "532") {
-    positions = [[50,250],[200,60],[200,150],[200,250],[200,350],[200,440],[400,150],[400,250],[400,350],[650,180],[650,320]];
-  }
+  if (formation === "433") positions = [[50,250],[200,80],[200,200],[200,320],[200,440],[400,120],[400,250],[400,380],[650,80],[650,250],[650,420]];
+  if (formation === "442") positions = [[50,250],[200,80],[200,200],[200,320],[200,440],[400,80],[400,200],[400,320],[400,440],[650,170],[650,330]];
+  if (formation === "352") positions = [[50,250],[200,150],[200,250],[200,350],[400,60],[400,160],[400,250],[400,340],[400,440],[650,180],[650,320]];
+  if (formation === "532") positions = [[50,250],[200,60],[200,150],[200,250],[200,350],[200,440],[400,150],[400,250],[400,350],[650,180],[650,320]];
 
   positions.forEach(pos => {
     const div = document.createElement("div");
@@ -232,10 +224,7 @@ function makeDraggable(el) {
       el.style.top = pageY - shiftY - el.parentElement.getBoundingClientRect().top + 'px';
     }
 
-    function onMouseMove(e) {
-      moveAt(e.pageX, e.pageY);
-    }
-
+    function onMouseMove(e) { moveAt(e.pageX, e.pageY); }
     document.addEventListener('mousemove', onMouseMove);
 
     document.onmouseup = function() {
@@ -259,7 +248,7 @@ async function downloadPDF() {
   pdf.text(document.getElementById("competition").value || "", 10, 30);
 
   pdf.addImage(imgData, "PNG", 10, 40, 270, 150);
-  pdf.save("TactiBoard-Pro.pdf");
+  pdf.save("TactiBoard-Pessoal.pdf");
 }
 
 generateFormation();
