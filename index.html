@@ -6,25 +6,129 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-  body {margin:0; font-family:'Segoe UI',sans-serif; background:#f8f9fa; color:#111;}
-  header {padding:16px; background:#22c55e; text-align:center; font-size:26px; font-weight:bold; color:white;}
-  .container {display:flex; gap:24px; padding:20px; max-width:1400px; margin:auto;}
-  .sidebar {width:340px; background:#e0f2e9; padding:20px; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.08);}
-  .sidebar input, .sidebar select {width:100%; margin-bottom:12px; padding:10px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box;}
-  .sidebar button {width:100%; padding:12px; margin:6px 0; border:none; border-radius:8px; font-weight:bold; cursor:pointer;}
-  .sidebar button.primary   {background:#16a34a; color:white;}
-  .sidebar button.secondary {background:#6b7280; color:white;}
-  .sidebar button.danger    {background:#ef4444; color:white;}
-  
-  .player-slot {display:flex; align-items:center; background:white; border:1px solid #ddd; border-radius:6px; margin:6px 0; padding:6px; font-weight:bold;}
-  .player-number {width:36px; text-align:center; background:#dcfce7; border-radius:4px; padding:4px 0; margin-right:8px; color:#166534; font-size:15px;}
-  .player-name {flex:1; padding:6px; border-radius:4px; min-height:24px;}
-  .player-name[contenteditable="true"]:focus {outline:2px solid #16a34a; background:#f0fdf4;}
-  
-  .field-container {flex:1; text-align:center;}
-  .field {width:920px; height:520px; background:#86efac; margin:auto; position:relative; border:4px solid #14532d; border-radius:8px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.15);}
-  .player {position:absolute; width:76px; height:46px; border-radius:10px; text-align:center; line-height:46px; font-size:13px; font-weight:bold; cursor:move; background:rgba(255,255,255,0.94); color:#111; border:1px solid #555; box-shadow:0 2px 8px rgba(0,0,0,0.25); user-select:none;}
-  .player::before {content:attr(data-pos); position:absolute; top:-20px; left:50%; transform:translateX(-50%); font-size:11px; color:#222; font-weight:normal;}
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f8f9fa;
+    color: #111;
+  }
+  header {
+    padding: 16px;
+    background: #22c55e;
+    text-align: center;
+    font-size: 26px;
+    font-weight: bold;
+    color: white;
+  }
+  .container {
+    display: flex;
+    gap: 24px;
+    padding: 20px;
+    max-width: 1400px;
+    margin: auto;
+  }
+  .sidebar {
+    width: 340px;
+    background: #e0f2e9;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  .sidebar input,
+  .sidebar select {
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+  }
+  .sidebar button {
+    width: 100%;
+    padding: 12px;
+    margin: 6px 0;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .sidebar button.primary   { background: #16a34a; color: white; }
+  .sidebar button.secondary { background: #6b7280; color: white; }
+  .sidebar button.danger    { background: #ef4444; color: white; }
+
+  .player-slot {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin: 6px 0;
+    padding: 6px;
+    font-weight: bold;
+    cursor: grab;
+  }
+  .player-number {
+    width: 36px;
+    text-align: center;
+    background: #dcfce7;
+    border-radius: 4px;
+    padding: 4px 0;
+    margin-right: 8px;
+    color: #166534;
+    font-size: 15px;
+  }
+  .player-name {
+    flex: 1;
+    padding: 6px;
+    border-radius: 4px;
+    min-height: 24px;
+  }
+  .player-name[contenteditable="true"]:focus {
+    outline: 2px solid #16a34a;
+    background: #f0fdf4;
+  }
+
+  .field-container {
+    flex: 1;
+    text-align: center;
+  }
+  .field {
+    width: 920px;
+    height: 520px;
+    background: #86efac;
+    margin: auto;
+    position: relative;
+    border: 4px solid #14532d;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+  .player {
+    position: absolute;
+    width: 76px;
+    height: 46px;
+    border-radius: 10px;
+    text-align: center;
+    line-height: 46px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: move;
+    background: rgba(255,255,255,0.94);
+    color: #111;
+    border: 1px solid #555;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    user-select: none;
+  }
+  .player::before {
+    content: attr(data-pos);
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: #222;
+    font-weight: normal;
+  }
 </style>
 </head>
 <body>
@@ -51,12 +155,14 @@
     <button class="danger" onclick="resetAll()">Reset total</button>
     <button class="primary" onclick="downloadPDF()">Download PDF</button>
 
-    <div style="margin-top:24px;">
+    <div style="margin-top: 24px;">
       <h3>Plantel (1–18)</h3>
       <div id="playerList"></div>
       <input type="text" id="newPlayer" placeholder="Adicionar jogador extra (19+)">
       <button class="primary" onclick="addExtraPlayer()">Adicionar extra</button>
-      <p style="font-size:12px; color:#555; margin-top:8px;">Edita os nomes • Arrasta para o campo</p>
+      <p style="font-size:12px; color:#555; margin-top:8px;">
+        Edita os nomes • Arrasta para o campo
+      </p>
     </div>
   </div>
 
@@ -72,7 +178,7 @@ let offsetX, offsetY;
 let playerNames = Array(18).fill("");
 
 // =============================================
-// Desenhar campo com linhas reais (SVG)
+// Campo com linhas corrigidas e realistas
 // =============================================
 function drawFieldLines() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -83,38 +189,64 @@ function drawFieldLines() {
   svg.style.left = "0";
   svg.style.pointerEvents = "none";
 
-  const w = 920, h = 520;
-  const scale = (x) => x * w / 105;  // Campo FIFA ~105×68m
+  const w = 920;
+  const h = 520;
+
+  const scaleX = w / 105;
+  const scaleY = h / 68;
+  const scale  = (v) => v * (scaleX + scaleY) / 2;
+
   const lines = [];
 
-  // Contorno + meio-campo
-  lines.push(`<rect x="0" y="0" width="${w}" height="${h}" fill="none" stroke="#fff" stroke-width="4" opacity="0.8"/>`);
-  lines.push(`<line x1="${w/2}" y1="0" x2="${w/2}" y2="${h}" stroke="#fff" stroke-width="3" opacity="0.7"/>`);
+  // Contorno
+  lines.push(`<rect x="0" y="0" width="${w}" height="${h}" fill="none" stroke="#ffffff" stroke-width="4" opacity="0.85"/>`);
+
+  // Meio-campo
+  lines.push(`<line x1="${w/2}" y1="0" x2="${w/2}" y2="${h}" stroke="#ffffff" stroke-width="3" opacity="0.75"/>`);
 
   // Círculo central
-  lines.push(`<circle cx="${w/2}" cy="${h/2}" r="${scale(9.15)}" fill="none" stroke="#fff" stroke-width="3" opacity="0.7"/>`);
-  lines.push(`<circle cx="${w/2}" cy="${h/2}" r="4" fill="#fff"/>`);
+  lines.push(`<circle cx="${w/2}" cy="${h/2}" r="${scale(9.15)}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.75"/>`);
+  lines.push(`<circle cx="${w/2}" cy="${h/2}" r="3" fill="#ffffff"/>`);
 
-  // Áreas penais (completo)
-  const penaltyAreaW = scale(16.5), penaltyAreaH = scale(40.3);
-  const goalAreaW   = scale(5.5),   goalAreaH   = scale(18.3);
-  lines.push(`<rect x="0" y="${(h-penaltyAreaH)/2}" width="${penaltyAreaW}" height="${penaltyAreaH}" fill="none" stroke="#fff" stroke-width="3" opacity="0.75"/>`);
-  lines.push(`<rect x="${w-penaltyAreaW}" y="${(h-penaltyAreaH)/2}" width="${penaltyAreaW}" height="${penaltyAreaH}" fill="none" stroke="#fff" stroke-width="3" opacity="0.75"/>`);
-  lines.push(`<rect x="0" y="${(h-goalAreaH)/2}" width="${goalAreaW}" height="${goalAreaH}" fill="none" stroke="#fff" stroke-width="2" opacity="0.75"/>`);
-  lines.push(`<rect x="${w-goalAreaW}" y="${(h-goalAreaH)/2}" width="${goalAreaW}" height="${goalAreaH}" fill="none" stroke="#fff" stroke-width="2" opacity="0.75"/>`);
+  // Áreas penais grandes (16.5 × 40.32 m)
+  const paW = scale(16.5);
+  const paH = scale(40.32);
+  lines.push(`<rect x="0" y="${(h-paH)/2}" width="${paW}" height="${paH}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
+  lines.push(`<rect x="${w-paW}" y="${(h-paH)/2}" width="${paW}" height="${paH}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
 
-  // Pontos de penálti + semicírculos
-  lines.push(`<circle cx="${scale(11)}" cy="${h/2}" r="2" fill="#fff"/>`);
-  lines.push(`<circle cx="${w - scale(11)}" cy="${h/2}" r="2" fill="#fff"/>`);
-  lines.push(`<path d="M ${scale(11)} ${h/2} A ${scale(9.15)} ${scale(9.15)} 0 0 1 ${scale(11)+scale(18.3)} ${h/2 - scale(9.15)}" fill="none" stroke="#fff" stroke-width="3" opacity="0.7"/>`);
-  lines.push(`<path d="M ${w - scale(11)} ${h/2} A ${scale(9.15)} ${scale(9.15)} 0 0 0 ${w - scale(11)-scale(18.3)} ${h/2 - scale(9.15)}" fill="none" stroke="#fff" stroke-width="3" opacity="0.7"/>`);
+  // Áreas pequenas (5.5 × 18.32 m)
+  const gaW = scale(5.5);
+  const gaH = scale(18.32);
+  lines.push(`<rect x="0" y="${(h-gaH)/2}" width="${gaW}" height="${gaH}" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.8"/>`);
+  lines.push(`<rect x="${w-gaW}" y="${(h-gaH)/2}" width="${gaW}" height="${gaH}" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.8"/>`);
 
-  svg.innerHTML = lines.join("");
+  // Pontos de penálti
+  const penX = scale(11);
+  lines.push(`<circle cx="${penX}" cy="${h/2}" r="2.5" fill="#ffffff"/>`);
+  lines.push(`<circle cx="${w-penX}" cy="${h/2}" r="2.5" fill="#ffffff"/>`);
+
+  // Semicírculos da área penal – CORRIGIDO
+  const arcR = scale(9.15);
+  // Esquerda (abre para direita)
+  lines.push(`<path d="M ${penX} ${h/2} A ${arcR} ${arcR} 0 0 1 ${penX + scale(18.3)} ${h/2 - arcR}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
+  lines.push(`<path d="M ${penX} ${h/2} A ${arcR} ${arcR} 0 0 0 ${penX + scale(18.3)} ${h/2 + arcR}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
+  // Direita (abre para esquerda)
+  lines.push(`<path d="M ${w-penX} ${h/2} A ${arcR} ${arcR} 0 0 0 ${w-penX - scale(18.3)} ${h/2 - arcR}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
+  lines.push(`<path d="M ${w-penX} ${h/2} A ${arcR} ${arcR} 0 0 1 ${w-penX - scale(18.3)} ${h/2 + arcR}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
+
+  // Bandeirinhas de canto (raio ~1m)
+  const cr = scale(1);
+  lines.push(`<path d="M 0 0 A ${cr} ${cr} 0 0 1 ${cr*2} ${cr*2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.7"/>`);
+  lines.push(`<path d="M ${w} 0 A ${cr} ${cr} 0 0 0 ${w - cr*2} ${cr*2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.7"/>`);
+  lines.push(`<path d="M 0 ${h} A ${cr} ${cr} 0 0 0 ${cr*2} ${h - cr*2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.7"/>`);
+  lines.push(`<path d="M ${w} ${h} A ${cr} ${cr} 0 0 1 ${w - cr*2} ${h - cr*2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.7"/>`);
+
+  svg.innerHTML = lines.join("\n");
   field.appendChild(svg);
 }
 
 // =============================================
-// Plantel numerado
+// Plantel
 // =============================================
 function initPlantel() {
   const list = document.getElementById("playerList");
@@ -129,18 +261,21 @@ function initPlantel() {
     num.className = "player-number";
     num.innerText = i + 1;
 
-    const name = document.createElement("div");
-    name.className = "player-name";
-    name.contentEditable = true;
-    name.innerText = playerNames[i] || "";
-    name.oninput = () => { playerNames[i] = name.innerText.trim(); syncFieldNames(); };
+    const nameDiv = document.createElement("div");
+    nameDiv.className = "player-name";
+    nameDiv.contentEditable = true;
+    nameDiv.innerText = playerNames[i] || "";
+    nameDiv.oninput = () => {
+      playerNames[i] = nameDiv.innerText.trim();
+      syncFieldNames();
+    };
 
     slot.appendChild(num);
-    slot.appendChild(name);
+    slot.appendChild(nameDiv);
 
     slot.addEventListener("dragstart", (e) => {
       draggedElement = slot;
-      e.dataTransfer.setData("text/plain", i);
+      e.dataTransfer.setData("text/plain", i.toString());
     });
 
     list.appendChild(slot);
@@ -148,8 +283,9 @@ function initPlantel() {
 }
 
 function addExtraPlayer() {
-  const nameInput = document.getElementById("newPlayer").value.trim();
-  if (!nameInput) return;
+  const val = document.getElementById("newPlayer").value.trim();
+  if (!val) return;
+
   const slot = document.createElement("div");
   slot.className = "player-slot";
   slot.draggable = true;
@@ -158,16 +294,17 @@ function addExtraPlayer() {
   num.className = "player-number";
   num.innerText = "?";
 
-  const name = document.createElement("div");
-  name.className = "player-name";
-  name.contentEditable = true;
-  name.innerText = nameInput;
+  const nameDiv = document.createElement("div");
+  nameDiv.className = "player-name";
+  nameDiv.contentEditable = true;
+  nameDiv.innerText = val;
 
   slot.appendChild(num);
-  slot.appendChild(name);
+  slot.appendChild(nameDiv);
+
   slot.addEventListener("dragstart", (e) => {
     draggedElement = slot;
-    e.dataTransfer.setData("text/plain", nameInput);
+    e.dataTransfer.setData("text/plain", "extra:" + val);
   });
 
   document.getElementById("playerList").appendChild(slot);
@@ -175,7 +312,7 @@ function addExtraPlayer() {
 }
 
 // =============================================
-// Formações (posições base)
+// Formações
 // =============================================
 const formations = {
   "352Atual": [
@@ -193,15 +330,17 @@ function generateFormation() {
   field.innerHTML = "";
   drawFieldLines();
 
-  const sel = document.getElementById("formation").value;
-  const posArray = formations[sel] || formations["352Atual"];
+  const key = document.getElementById("formation").value;
+  const pos = formations[key] || formations["352Atual"];
 
-  posArray.forEach((p, i) => {
+  pos.forEach((p, i) => {
+    if (i >= 11) return; // só 11 jogadores em campo
+
     const div = document.createElement("div");
     div.className = "player";
     div.contentEditable = true;
     div.dataset.pos = (i + 1).toString();
-    div.dataset.plantelIndex = i;  // associa ao plantel 0-10
+    div.dataset.plantelIndex = i.toString();
     div.innerText = playerNames[i] || "";
     div.style.left = (p[0] * 920) + "px";
     div.style.top  = (p[1] * 520) + "px";
@@ -212,8 +351,7 @@ function generateFormation() {
 }
 
 function syncFieldNames() {
-  const players = field.querySelectorAll(".player");
-  players.forEach(p => {
+  document.querySelectorAll(".player").forEach(p => {
     const idx = parseInt(p.dataset.plantelIndex);
     if (!isNaN(idx) && playerNames[idx] !== undefined) {
       p.innerText = playerNames[idx];
@@ -222,45 +360,54 @@ function syncFieldNames() {
 }
 
 // =============================================
-// Drag & Drop (do plantel para campo + mover no campo)
+// Drag & Drop
 // =============================================
-field.addEventListener("dragover", (e) => e.preventDefault());
+field.addEventListener("dragover", e => e.preventDefault());
 
-field.addEventListener("drop", (e) => {
+field.addEventListener("drop", e => {
   e.preventDefault();
   if (!draggedElement) return;
 
   const data = e.dataTransfer.getData("text/plain");
   let name = "";
-  let index = parseInt(data);
+  let plantelIdx = null;
 
-  if (!isNaN(index)) {
-    name = playerNames[index] || document.querySelectorAll(".player-name")[index].innerText.trim();
+  if (data.startsWith("extra:")) {
+    name = data.substring(6);
   } else {
-    name = data; // extra player
+    const idx = parseInt(data);
+    if (!isNaN(idx)) {
+      plantelIdx = idx;
+      name = playerNames[idx] || "";
+    }
   }
 
-  // Cria ou atualiza jogador no campo
-  const existing = Array.from(field.querySelectorAll(".player")).find(p => p.dataset.plantelIndex == index);
-  if (existing) {
-    existing.innerText = name;
-    return;
-  }
-
-  // Novo jogador no local do drop
   const rect = field.getBoundingClientRect();
-  const div = document.createElement("div");
-  div.className = "player";
-  div.contentEditable = true;
-  div.innerText = name;
-  div.dataset.pos = "?";
-  if (!isNaN(index)) div.dataset.plantelIndex = index;
-
   let left = e.clientX - rect.left - 38;
   let top  = e.clientY - rect.top  - 23;
   left = Math.max(0, Math.min(920-76, Math.round(left/20)*20));
   top  = Math.max(0, Math.min(520-46, Math.round(top/20)*20));
 
+  // Verificar se já existe jogador associado a este índice
+  let existing = null;
+  if (plantelIdx !== null) {
+    existing = field.querySelector(`.player[data-plantel-index="${plantelIdx}"]`);
+  }
+
+  if (existing) {
+    existing.innerText = name;
+    existing.style.left = left + "px";
+    existing.style.top  = top  + "px";
+    return;
+  }
+
+  // Criar novo
+  const div = document.createElement("div");
+  div.className = "player";
+  div.contentEditable = true;
+  div.innerText = name;
+  div.dataset.pos = "?";
+  if (plantelIdx !== null) div.dataset.plantelIndex = plantelIdx;
   div.style.left = left + "px";
   div.style.top  = top + "px";
 
@@ -271,20 +418,22 @@ field.addEventListener("drop", (e) => {
 function makeDraggable(el) {
   let isDragging = false;
 
-  const start = (e) => {
+  const start = e => {
     isDragging = true;
-    const clientX = e.clientX || e.touches?.[0].clientX;
-    const clientY = e.clientY || e.touches?.[0].clientY;
-    offsetX = clientX - el.getBoundingClientRect().left;
-    offsetY = clientY - el.getBoundingClientRect().top;
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    const rect = el.getBoundingClientRect();
+    offsetX = clientX - rect.left;
+    offsetY = clientY - rect.top;
     el.style.zIndex = 100;
+    e.preventDefault();
   };
 
-  const move = (e) => {
+  const move = e => {
     if (!isDragging) return;
     e.preventDefault();
-    const clientX = e.clientX || e.touches?.[0].clientX;
-    const clientY = e.clientY || e.touches?.[0].clientY;
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
     let newLeft = clientX - offsetX - field.getBoundingClientRect().left;
     let newTop  = clientY - offsetY - field.getBoundingClientRect().top;
 
@@ -300,53 +449,66 @@ function makeDraggable(el) {
   const end = () => { isDragging = false; };
 
   el.addEventListener("mousedown", start);
-  el.addEventListener("touchstart", start, {passive:false});
+  el.addEventListener("touchstart", start, {passive: false});
   document.addEventListener("mousemove", move);
-  document.addEventListener("touchmove", move, {passive:false});
+  document.addEventListener("touchmove", move, {passive: false});
   document.addEventListener("mouseup", end);
   document.addEventListener("touchend", end);
 }
 
+// =============================================
 // Limpar / Reset
+// =============================================
 function clearPositions() {
-  field.querySelectorAll(".player").forEach(p => p.remove());
+  field.innerHTML = "";
+  drawFieldLines();
 }
 
 function resetAll() {
-  if (!confirm("Reset total?")) return;
-  document.querySelectorAll("input:not([type='date'])").forEach(el => el.value = "");
+  if (!confirm("Reset total? Perdes tudo.")) return;
+  document.getElementById("teamName").value = "";
+  document.getElementById("opponent").value = "";
   document.getElementById("matchDate").value = "";
+  document.getElementById("competition").value = "";
   playerNames.fill("");
   initPlantel();
   clearPositions();
 }
 
-// PDF (igual ao anterior, mas podes melhorar depois)
+// =============================================
+// PDF
+// =============================================
 async function downloadPDF() {
   const { jsPDF } = window.jspdf;
-  const canvas = await html2canvas(field, {scale:3, backgroundColor:null});
+  const canvas = await html2canvas(field, {scale: 3, backgroundColor: null});
   const imgData = canvas.toDataURL("image/png");
-  const pdf = new jsPDF({orientation:"landscape", unit:"mm", format:"a4"});
+
+  const pdf = new jsPDF({orientation: "landscape", unit: "mm", format: "a4"});
+  let y = 12;
 
   const info = [
-    ["Equipa", document.getElementById("teamName").value || "—"],
-    ["Adversário", document.getElementById("opponent").value || "—"],
-    ["Data", document.getElementById("matchDate").value || "—"],
-    ["Competição", document.getElementById("competition").value || "—"],
-    ["Formação", document.getElementById("formation").value || "—"]
+    ["Equipa",     document.getElementById("teamName").value     || "—"],
+    ["Adversário", document.getElementById("opponent").value     || "—"],
+    ["Data",       document.getElementById("matchDate").value    || "—"],
+    ["Competição", document.getElementById("competition").value  || "—"],
+    ["Formação",   document.getElementById("formation").value    || "—"]
   ];
 
-  let y = 12;
-  info.forEach(([label, val]) => {
-    pdf.text(`${label}: ${val}`, 12, y);
+  info.forEach(([k, v]) => {
+    pdf.text(`${k}: ${v}`, 12, y);
     y += 8;
   });
 
-  pdf.addImage(imgData, "PNG", 10, y + 5, 270, 270 * (canvas.height/canvas.width));
-  pdf.save("TactiBoard.pdf");
+  const imgW = 270;
+  const imgH = (canvas.height / canvas.width) * imgW;
+  pdf.addImage(imgData, "PNG", 10, y + 5, imgW, imgH);
+
+  pdf.save("TactiBoard_CampoVerde.pdf");
 }
 
-// Início
+// =============================================
+// Inicialização
+// =============================================
 initPlantel();
 drawFieldLines();
 </script>
