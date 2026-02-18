@@ -8,129 +8,26 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-body {
-  margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background: #111;
-  color: white;
-}
-header {
-  padding: 15px;
-  background: #111827;
-  text-align: center;
-  font-size: 24px;
-  font-weight: bold;
-}
-.container {
-  display: flex;
-  gap: 20px;
-  padding: 20px;
-}
-.sidebar {
-  width: 280px;
-  background: #1f2937;
-  padding: 15px;
-  border-radius: 10px;
-}
-.sidebar input, .sidebar select {
-  width: 100%;
-  margin-bottom: 10px;
-  padding: 8px;
-  border-radius: 6px;
-  border: none;
-}
-.sidebar button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  border-radius: 8px;
-  border: none;
-  background: #22c55e;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-}
-.plantel {
-  margin-top: 15px;
-}
-.player-list {
-  background: white;
-  color: black;
-  padding: 6px;
-  margin-bottom: 5px;
-  border-radius: 6px;
-  cursor: pointer;
-  text-align: center;
-  font-weight: bold;
-}
-.player-list[contenteditable="true"] {
-  outline: 1px solid #ccc;
-}
-.field-container {
-  flex: 1;
-  text-align: center;
-}
-.field {
-  width: 900px;
-  height: 500px;
-  background: #0b0b0b;
-  margin: auto;
-  border-radius: 0px;
-  position: relative;
-  border: 3px solid white;
-}
-.line-mid, .circle-mid {
-  position: absolute;
-}
-.line-mid {
-  width: 2px;
-  height: 100%;
-  background: white;
-  left: 50%;
-}
-.circle-mid {
-  width: 120px;
-  height: 120px;
-  border: 2px solid white;
-  border-radius: 50%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%,-50%);
-}
-.area-grande {
-  position: absolute;
-  border: 2px solid white;
-}
-.area-pequena {
-  position: absolute;
-  border: 2px solid white;
-}
-.canto {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  border: 2px solid white;
-}
-.player {
-  position: absolute;
-  width: 110px;
-  height: 45px;
-  border-radius: 10px;
-  text-align: center;
-  line-height: 45px;
-  font-weight: bold;
-  cursor: move;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.4);
-}
-.player.bola {
-  width: 20px !important;
-  height: 20px !important;
-  line-height: 20px !important;
-  border-radius: 50%;
-  font-size: 10px;
-  background: white;
-  color: black;
-}
+body {margin:0;font-family:'Segoe UI',sans-serif;background:#111;color:white;}
+header {padding:15px;background:#111827;text-align:center;font-size:24px;font-weight:bold;}
+.container {display:flex;gap:20px;padding:20px;}
+.sidebar {width:280px;background:#1f2937;padding:15px;border-radius:10px;}
+.sidebar input,.sidebar select {width:100%;margin-bottom:10px;padding:8px;border-radius:6px;border:none;}
+.sidebar button {width:100%;padding:10px;margin-top:5px;border-radius:8px;border:none;background:#22c55e;color:white;font-weight:bold;cursor:pointer;}
+.plantel {margin-top:15px;}
+.player-list {background:white;color:black;padding:6px;margin-bottom:5px;border-radius:6px;cursor:pointer;text-align:center;font-weight:bold;}
+.player-list[contenteditable="true"] {outline:1px solid #ccc;}
+.field-container {flex:1;text-align:center;}
+.field {width:900px;height:500px;background:#0b0b0b;margin:auto;position:relative;border:3px solid white;}
+.line-mid, .circle-mid {position:absolute;}
+.line-mid {width:2px;height:100%;background:white;left:50%;}
+.circle-mid {width:120px;height:120px;border:2px solid white;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);}
+.area-grande {position:absolute;border:2px solid white;}
+.area-pequena {position:absolute;border:2px solid white;}
+.canto {position:absolute;width:20px;height:20px;border:2px solid white;}
+.player {position:absolute;width:110px;height:45px;border-radius:10px;text-align:center;line-height:45px;font-weight:bold;cursor:move;box-shadow:0 3px 6px rgba(0,0,0,0.4);background:white;color:black;}
+.player.bola {width:20px !important;height:20px !important;line-height:20px !important;border-radius:50%;font-size:10px;background:white;color:black;}
+.arrow {position:absolute;width:2px;background:red;transform-origin:0 0;}
 </style>
 </head>
 
@@ -157,6 +54,7 @@ header {
 <button onclick="generateFormation()">Aplicar Formação</button>
 <button onclick="clearField()">Limpar Campo</button>
 <button onclick="addBalls()">Bolas Paradas</button>
+<button onclick="addArrow()">Adicionar Setas</button>
 <button onclick="downloadPDF()">Download PDF</button>
 
 <div class="plantel">
@@ -170,7 +68,6 @@ header {
 
 <div class="field-container">
 <div class="field" id="field">
-<!-- Marcações padrão -->
 <div class="line-mid"></div>
 <div class="circle-mid"></div>
 </div>
@@ -181,122 +78,92 @@ header {
 <script>
 let selectedPlayer = null;
 
-// Adicionar jogador ao plantel
-function addPlayer() {
+// Plantel lateral
+function addPlayer(){
   const name = document.getElementById("newPlayer").value;
   if(!name) return;
-  const div = document.createElement("div");
-  div.className = "player-list";
-  div.innerText = name;
-  div.contentEditable = "true"; 
-  div.onclick = ()=>selectedPlayer = name;
+  const div=document.createElement("div");
+  div.className="player-list";
+  div.innerText=name;
+  div.contentEditable="true";
+  div.onclick=()=>selectedPlayer=name;
   document.getElementById("playerList").appendChild(div);
-  document.getElementById("newPlayer").value = "";
+  document.getElementById("newPlayer").value="";
 }
 
 // Limpar campo
-function clearField() { generateFormation(); }
+function clearField(){ generateFormation(); }
 
 // Drag & Drop
 function makeDraggable(el){
-  el.onmousedown = function(e){
+  el.onmousedown=function(e){
     e.preventDefault();
-    let shiftX = e.clientX - el.getBoundingClientRect().left;
-    let shiftY = e.clientY - el.getBoundingClientRect().top;
-    function moveAt(pageX,pageY){
-      el.style.left = pageX-shiftX-el.parentElement.getBoundingClientRect().left+'px';
-      el.style.top = pageY-shiftY-el.parentElement.getBoundingClientRect().top+'px';
-    }
+    let shiftX=e.clientX-el.getBoundingClientRect().left;
+    let shiftY=e.clientY-el.getBoundingClientRect().top;
+    function moveAt(pageX,pageY){ el.style.left=pageX-shiftX-el.parentElement.getBoundingClientRect().left+'px'; el.style.top=pageY-shiftY-el.parentElement.getBoundingClientRect().top+'px';}
     function onMouseMove(e){ moveAt(e.pageX,e.pageY);}
     document.addEventListener('mousemove',onMouseMove);
-    document.onmouseup = function(){
-      document.removeEventListener('mousemove',onMouseMove);
-      document.onmouseup=null;
-    }
+    document.onmouseup=function(){document.removeEventListener('mousemove',onMouseMove);document.onmouseup=null;}
   };
 }
 
-// Gera formações usando todo o campo
+// Campo principal 2D com áreas, cantos, jogadores
 function generateFormation(){
-  const field = document.getElementById("field");
-  field.innerHTML = '<div class="line-mid"></div><div class="circle-mid"></div>';
+  const field=document.getElementById("field");
+  field.innerHTML='<div class="line-mid"></div><div class="circle-mid"></div>';
 
-  // Marcas das áreas
   const w=900,h=500;
-  const areaG = document.createElement("div");
-  areaG.className="area-grande";
-  areaG.style.left="0px";
-  areaG.style.top=(h*0.2)+"px";
-  areaG.style.width="120px";
-  areaG.style.height=(h*0.6)+"px";
+
+  // Áreas
+  const areaG=document.createElement("div");
+  areaG.className="area-grande"; areaG.style.left="0px"; areaG.style.top=h*0.2+"px"; areaG.style.width="120px"; areaG.style.height=h*0.6+"px";
   field.appendChild(areaG);
 
-  const areaP = document.createElement("div");
-  areaP.className="area-pequena";
-  areaP.style.left="0px";
-  areaP.style.top=(h*0.35)+"px";
-  areaP.style.width="50px";
-  areaP.style.height=(h*0.3)+"px";
+  const areaP=document.createElement("div");
+  areaP.className="area-pequena"; areaP.style.left="0px"; areaP.style.top=h*0.35+"px"; areaP.style.width="50px"; areaP.style.height=h*0.3+"px";
   field.appendChild(areaP);
 
-  // Pontapé de canto
-  const cantoTL=document.createElement("div");
-  cantoTL.className="canto"; cantoTL.style.left="0px"; cantoTL.style.top="0px"; field.appendChild(cantoTL);
-  const cantoBL=document.createElement("div");
-  cantoBL.className="canto"; cantoBL.style.left="0px"; cantoBL.style.top=(h-20)+"px"; field.appendChild(cantoBL);
-  const cantoTR=document.createElement("div");
-  cantoTR.className="canto"; cantoTR.style.left=(w-20)+"px"; cantoTR.style.top="0px"; field.appendChild(cantoTR);
-  const cantoBR=document.createElement("div");
-  cantoBR.className="canto"; cantoBR.style.left=(w-20)+"px"; cantoBR.style.top=(h-20)+"px"; field.appendChild(cantoBR);
+  // Cantos
+  [[0,0],[0,h-20],[w-20,0],[w-20,h-20]].forEach(c=>{const div=document.createElement("div");div.className="canto";div.style.left=c[0]+"px";div.style.top=c[1]+"px";field.appendChild(div);});
 
   // Jogadores
-  const formation = document.getElementById("formation").value;
+  const formation=document.getElementById("formation").value;
   let positions=[];
 
-  if(formation==="433") positions = [
-    [0.05*w,0.5*h,'gk'],
-    [0.2*w,0.15*h,'def'],[0.2*w,0.5*h,'def'],[0.2*w,0.85*h,'def'],
-    [0.45*w,0.2*h,'mid'],[0.45*w,0.5*h,'mid'],[0.45*w,0.8*h,'mid'],
-    [0.7*w,0.15*h,'att'],[0.7*w,0.5*h,'att'],[0.7*w,0.85*h,'att']
-  ];
-  if(formation==="442") positions = [
-    [0.05*w,0.5*h,'gk'],
-    [0.2*w,0.1*h,'def'],[0.2*w,0.3*h,'def'],[0.2*w,0.7*h,'def'],[0.2*w,0.9*h,'def'],
-    [0.45*w,0.1*h,'mid'],[0.45*w,0.3*h,'mid'],[0.45*w,0.7*h,'mid'],[0.45*w,0.9*h,'mid'],
-    [0.7*w,0.3*h,'att'],[0.7*w,0.7*h,'att']
-  ];
-  if(formation==="352Atual") positions=[
-    [0.05*w,0.5*h,'gk'],
-    [0.2*w,0.15*h,'def'],[0.2*w,0.5*h,'def'],[0.2*w,0.85*h,'def'],
-    [0.35*w,0.05*h,'mid'],[0.35*w,0.2*h,'mid'],
-    [0.4*w,0.5*h,'mid'],
-    [0.35*w,0.8*h,'mid'],[0.35*w,0.95*h,'mid'],
-    [0.65*w,0.3*h,'att'],[0.65*w,0.7*h,'att']
-  ];
+  if(formation==="433") positions=[[0.05*w,0.5*h,'player'],[0.2*w,0.15*h,'player'],[0.2*w,0.5*h,'player'],[0.2*w,0.85*h,'player'],[0.45*w,0.2*h,'player'],[0.45*w,0.5*h,'player'],[0.45*w,0.8*h,'player'],[0.7*w,0.15*h,'player'],[0.7*w,0.5*h,'player'],[0.7*w,0.85*h,'player']];
+  if(formation==="442") positions=[[0.05*w,0.5*h,'player'],[0.2*w,0.1*h,'player'],[0.2*w,0.3*h,'player'],[0.2*w,0.7*h,'player'],[0.2*w,0.9*h,'player'],[0.45*w,0.1*h,'player'],[0.45*w,0.3*h,'player'],[0.45*w,0.7*h,'player'],[0.45*w,0.9*h,'player'],[0.7*w,0.3*h,'player'],[0.7*w,0.7*h,'player']];
+  if(formation==="352Atual") positions=[[0.05*w,0.5*h,'player'],[0.2*w,0.15*h,'player'],[0.2*w,0.5*h,'player'],[0.2*w,0.85*h,'player'],[0.35*w,0.05*h,'player'],[0.35*w,0.2*h,'player'],[0.4*w,0.5*h,'player'],[0.35*w,0.8*h,'player'],[0.35*w,0.95*h,'player'],[0.65*w,0.3*h,'player'],[0.65*w,0.7*h,'player']];
 
   positions.forEach(pos=>{
     const div=document.createElement("div");
-    div.className="player "+pos[2];
+    div.className=pos[2];
     div.contentEditable="true";
-    div.style.left=pos[0]+"px";
-    div.style.top=pos[1]+"px";
+    div.style.left=pos[0]+"px"; div.style.top=pos[1]+"px";
+    div.innerText="";
     makeDraggable(div);
     field.appendChild(div);
   });
 }
 
-// Adicionar bolas paradas
+// Adicionar bolas paradas (editáveis)
 function addBalls(){
   const field=document.getElementById("field");
   for(let i=0;i<6;i++){
     const ball=document.createElement("div");
-    ball.className="player bola";
-    ball.style.left=50+i*30+"px";
-    ball.style.top="400px";
-    ball.innerText="B";
+    ball.className="player bola"; ball.style.left=50+i*30+"px"; ball.style.top="400px"; ball.innerText="B";
     makeDraggable(ball);
     field.appendChild(ball);
   }
+}
+
+// Adicionar setas (trajetórias)
+function addArrow(){
+  const field=document.getElementById("field");
+  const arrow=document.createElement("div");
+  arrow.className="arrow";
+  arrow.style.left="200px"; arrow.style.top="200px"; arrow.style.height="50px"; arrow.style.transform="rotate(45deg)";
+  field.appendChild(arrow);
+  makeDraggable(arrow);
 }
 
 // PDF fiel
@@ -307,32 +174,13 @@ async function downloadPDF(){
   const imgData=canvas.toDataURL("image/png");
 
   const pdf=new jsPDF("landscape","mm","a4");
-
-  const startX=10;
-  let startY=10;
-  const cellWidth=50;
-  const cellHeight=8;
-
-  const gameInfo=[
-    ["Equipa",document.getElementById("teamName").value||"Equipa"],
-    ["Adversário",document.getElementById("opponent").value||"Adversário"],
-    ["Competição",document.getElementById("competition").value||""],
-    ["Data",document.getElementById("matchDate").value||""],
-    ["Formação",document.getElementById("formation").value||""]
-  ];
-
-  gameInfo.forEach((row,i)=>{
-    pdf.rect(startX,startY+i*cellHeight,cellWidth,cellHeight);
-    pdf.rect(startX+cellWidth,startY+i*cellHeight,cellWidth*2,cellHeight);
-    pdf.text(row[0],startX+2,startY+i*cellHeight+6);
-    pdf.text(row[1],startX+cellWidth+2,startY+i*cellHeight+6);
-  });
-
+  const startX=10,startY=10,cellWidth=50,cellHeight=8;
+  const gameInfo=[["Equipa",document.getElementById("teamName").value||"Equipa"],["Adversário",document.getElementById("opponent").value||"Adversário"],["Competição",document.getElementById("competition").value||""],["Data",document.getElementById("matchDate").value||""],["Formação",document.getElementById("formation").value||""]];
+  gameInfo.forEach((row,i)=>{pdf.rect(startX,startY+i*cellHeight,cellWidth,cellHeight);pdf.rect(startX+cellWidth,startY+i*cellHeight,cellWidth*2,cellHeight);pdf.text(row[0],startX+2,startY+i*cellHeight+6);pdf.text(row[1],startX+cellWidth+2,startY+i*cellHeight+6);});
   const imgWidth=270;
   const imgHeight=(canvas.height/canvas.width)*imgWidth;
   pdf.addImage(imgData,"PNG",10,startY+gameInfo.length*cellHeight+5,imgWidth,imgHeight);
-
-  pdf.save("TactiBoard-2D-Fiel.pdf");
+  pdf.save("TactiBoard-2D-Final.pdf");
 }
 
 generateFormation();
