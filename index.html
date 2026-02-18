@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>TactiBoard 11 – Profissional 2D Verde</title>
+<title>TactiBoard 11 – Campo Verde 2D</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -11,7 +11,7 @@
 body {margin:0;font-family:'Segoe UI',sans-serif;background:#fff;color:black;}
 header {padding:15px;background:#22c55e;text-align:center;font-size:24px;font-weight:bold;color:white;}
 .container {display:flex;gap:20px;padding:20px;}
-.sidebar {width:300px;background:#e0f2e9;padding:15px;border-radius:10px;}
+.sidebar {width:280px;background:#e0f2e9;padding:15px;border-radius:10px;}
 .sidebar input,.sidebar select {width:100%;margin-bottom:10px;padding:8px;border-radius:6px;border:none;}
 .sidebar button {width:100%;padding:10px;margin-top:5px;border-radius:8px;border:none;background:#16a34a;color:white;font-weight:bold;cursor:pointer;}
 .plantel {margin-top:15px;}
@@ -19,24 +19,13 @@ header {padding:15px;background:#22c55e;text-align:center;font-size:24px;font-we
 .player-list[contenteditable="true"] {outline:1px solid #ccc;}
 .field-container {flex:1;text-align:center;}
 .field {width:900px;height:500px;background:#a0e4a0;margin:auto;position:relative;border:3px solid white;}
-.line-mid, .circle-mid {position:absolute;}
-.line-mid {width:2px;height:100%;background:white;left:50%;}
-.circle-mid {width:120px;height:120px;border:2px solid white;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);}
-.area-grande {position:absolute;border:2px solid white;}
-.area-pequena {position:absolute;border:2px solid white;}
-.canto {position:absolute;width:20px;height:20px;border:2px solid white;}
-.player {position:absolute;width:110px;height:45px;border-radius:10px;text-align:center;line-height:45px;font-weight:bold;cursor:move;box-shadow:0 3px 6px rgba(0,0,0,0.4);background:white;color:black;}
-.legend {margin-top:15px;background:#f0f0f0;color:black;padding:10px;border-radius:8px;}
-.legend span {display:inline-block;width:20px;height:20px;margin-right:5px;vertical-align:middle;}
-.def {background:#f87171;}
-.mid {background:#facc15;}
-.att {background:#60a5fa;}
+.player {position:absolute;width:80px;height:40px;border-radius:8px;text-align:center;line-height:40px;font-weight:bold;cursor:move;background:white;color:black;}
 </style>
 </head>
 
 <body>
 
-<header>⚽ TactiBoard 11 – Verde Profissional</header>
+<header>⚽ TactiBoard 11 – Campo Verde 2D</header>
 
 <div class="container">
 
@@ -65,18 +54,10 @@ header {padding:15px;background:#22c55e;text-align:center;font-size:24px;font-we
 <button onclick="addPlayer()">Adicionar</button>
 <p style="font-size:12px;color:#555;">Clique no nome do jogador para editar</p>
 </div>
-
-<div class="legend">
-<h4>Legenda de posições:</h4>
-<p><span class="def"></span> Defesa | <span class="mid"></span> Médio | <span class="att"></span> Avançado | GR = Guarda-Redes | 10 = Médio Ofensivo</p>
-</div>
 </div>
 
 <div class="field-container">
-<div class="field" id="field">
-<div class="line-mid"></div>
-<div class="circle-mid"></div>
-</div>
+<div class="field" id="field"></div>
 </div>
 
 </div>
@@ -87,6 +68,7 @@ let selectedPlayer = null;
 // Inicializa 18 espaços no plantel
 function initPlantel(){
   const list = document.getElementById("playerList");
+  list.innerHTML="";
   for(let i=0;i<18;i++){
     const div=document.createElement("div");
     div.className="player-list";
@@ -126,44 +108,24 @@ function makeDraggable(el){
   };
 }
 
-// Campo principal 2D com áreas, cantos, jogadores
+// Campo principal 2D com retângulos para jogadores
 function generateFormation(){
   const field=document.getElementById("field");
-  field.innerHTML='<div class="line-mid"></div><div class="circle-mid"></div>';
+  field.innerHTML='';
 
   const w=900,h=500;
 
-  // Áreas
-  const areaG=document.createElement("div");
-  areaG.className="area-grande"; areaG.style.left="0px"; areaG.style.top=h*0.2+"px"; areaG.style.width="120px"; areaG.style.height=h*0.6+"px";
-  field.appendChild(areaG);
-
-  const areaP=document.createElement("div");
-  areaP.className="area-pequena"; areaP.style.left="0px"; areaP.style.top=h*0.35+"px"; areaP.style.width="50px"; areaP.style.height=h*0.3+"px";
-  field.appendChild(areaP);
-
-  // Cantos
-  [[0,0],[0,h-20],[w-20,0],[w-20,h-20]].forEach(c=>{const div=document.createElement("div");div.className="canto";div.style.left=c[0]+"px";div.style.top=c[1]+"px";field.appendChild(div);});
-
-  // Jogadores
-  const formation=document.getElementById("formation").value;
-  let positions=[];
-
-  if(formation==="433") positions=[[0.05*w,0.5*h,'def'],[0.2*w,0.15*h,'def'],[0.2*w,0.5*h,'def'],[0.2*w,0.85*h,'def'],[0.45*w,0.2*h,'mid'],[0.45*w,0.5*h,'mid'],[0.45*w,0.8*h,'mid'],[0.7*w,0.15*h,'att'],[0.7*w,0.5*h,'att'],[0.7*w,0.85*h,'att']];
-  if(formation==="442") positions=[[0.05*w,0.5*h,'def'],[0.2*w,0.1*h,'def'],[0.2*w,0.3*h,'def'],[0.2*w,0.7*h,'def'],[0.2*w,0.9*h,'def'],[0.45*w,0.1*h,'mid'],[0.45*w,0.3*h,'mid'],[0.45*w,0.7*h,'mid'],[0.45*w,0.9*h,'mid'],[0.7*w,0.3*h,'att'],[0.7*w,0.7*h,'att']];
-  
-  // 3-5-2 ATUAL como preset 11 jogadores
-  if(formation==="352Atual") positions=[
-    [0.05*w,0.5*h,'def'],           // GR
-    [0.2*w,0.35*h,'def'],[0.2*w,0.5*h,'def'],[0.2*w,0.65*h,'def'], // 3 Centrais
-    [0.4*w,0.15*h,'mid'],[0.4*w,0.35*h,'mid'],[0.4*w,0.5*h,'mid'],[0.4*w,0.65*h,'mid'],[0.4*w,0.85*h,'mid'], // 5 Médios
-    [0.65*w,0.35*h,'att'],[0.65*w,0.65*h,'att'], // 2 Avançados
-    [0.55*w,0.5*h,'mid'] // 10 Ofensivo (dentro dos 5 médios)
+  // 3-5-2 ATUAL como preset (11 jogadores)
+  const positions=[
+    [0.05*w,0.5*h],           // GR
+    [0.2*w,0.35*h],[0.2*w,0.5*h],[0.2*w,0.65*h], // 3 Centrais
+    [0.4*w,0.15*h],[0.4*w,0.35*h],[0.4*w,0.5*h],[0.4*w,0.65*h],[0.4*w,0.85*h], // 5 Médios (incluindo 10 ofensivo)
+    [0.65*w,0.35*h],[0.65*w,0.65*h] // 2 Avançados
   ];
 
   positions.forEach(pos=>{
     const div=document.createElement("div");
-    div.className=pos[2];
+    div.className="player";
     div.contentEditable="true";
     div.style.left=pos[0]+"px"; div.style.top=pos[1]+"px";
     div.innerText="";
@@ -186,7 +148,7 @@ async function downloadPDF(){
   const imgWidth=270;
   const imgHeight=(canvas.height/canvas.width)*imgWidth;
   pdf.addImage(imgData,"PNG",10,startY+gameInfo.length*cellHeight+5,imgWidth,imgHeight);
-  pdf.save("TactiBoard-2D-Verde-Preset.pdf");
+  pdf.save("TactiBoard-2D-Verde.pdf");
 }
 
 // Inicializa plantel e formação preset
