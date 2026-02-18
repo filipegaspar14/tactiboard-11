@@ -57,8 +57,7 @@
       <button class="primary" onclick="addExtraPlayer()">Adicionar</button>
     </div>
 
-    <!-- Botão novo para PDF com lista -->
-    <button class="primary" style="margin-top:20px; background:#7c3aed;" onclick="generatePDFWithPlayerList()">
+    <button class="primary" style="margin-top:20px; background:#7c3aed; width:100%;" onclick="generatePDFWithPlayerList()">
       Gerar PDF (campo + lista 18 jogadores)
     </button>
   </div>
@@ -75,7 +74,7 @@ let offsetX, offsetY;
 let playerNames = Array(18).fill("");
 
 // =============================================
-// Desenhar campo (mantém a tua versão corrigida)
+// Desenhar campo FIFA
 // =============================================
 function drawFieldLines() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -126,7 +125,9 @@ function drawFieldLines() {
   field.appendChild(svg);
 }
 
-// Inicializar plantel
+// =============================================
+// Plantel
+// =============================================
 function initPlantel() {
   const list = document.getElementById("playerList");
   list.innerHTML = "";
@@ -150,7 +151,6 @@ function initPlantel() {
 
     slot.appendChild(num);
     slot.appendChild(nameDiv);
-
     list.appendChild(slot);
   }
 }
@@ -176,10 +176,19 @@ function addExtraPlayer() {
   document.getElementById("newPlayer").value = "";
 }
 
-// Formações (mantém as tuas)
+// =============================================
+// Formações
+// =============================================
 const formations = {
-  "352Atual": [[0.06, 0.50], [0.22, 0.32], [0.22, 0.50], [0.22, 0.68], [0.42, 0.12], [0.42, 0.32], [0.42, 0.50], [0.42, 0.68], [0.42, 0.88], [0.70, 0.35], [0.70, 0.65]],
-  // ... adiciona as outras se quiseres
+  "352Atual": [
+    [0.06, 0.50], [0.22, 0.32], [0.22, 0.50], [0.22, 0.68],
+    [0.42, 0.12], [0.42, 0.32], [0.42, 0.50], [0.42, 0.68], [0.42, 0.88],
+    [0.70, 0.35], [0.70, 0.65]
+  ],
+  "433": [[0.06,0.5],[0.20,0.25],[0.20,0.50],[0.20,0.75],[0.20,0.90],[0.40,0.25],[0.40,0.50],[0.40,0.75],[0.68,0.20],[0.68,0.50],[0.68,0.80]],
+  "442": [[0.06,0.5],[0.20,0.25],[0.20,0.50],[0.20,0.75],[0.20,0.90],[0.42,0.20],[0.42,0.45],[0.42,0.55],[0.42,0.80],[0.70,0.35],[0.70,0.65]],
+  "4231": [[0.06,0.5],[0.20,0.25],[0.20,0.50],[0.20,0.75],[0.20,0.90],[0.38,0.35],[0.38,0.65],[0.55,0.20],[0.55,0.40],[0.55,0.60],[0.72,0.50]],
+  "532": [[0.06,0.5],[0.18,0.20],[0.18,0.40],[0.18,0.60],[0.18,0.80],[0.18,0.95],[0.40,0.25],[0.40,0.50],[0.40,0.75],[0.68,0.35],[0.68,0.65]]
 };
 
 function generateFormation() {
@@ -203,64 +212,163 @@ function generateFormation() {
   });
 }
 
-// Função nova: PDF com campo na página 1 + lista na página 2
+// =============================================
+// Drag & Drop (básico – podes expandir com snap/touch)
+// =============================================
+function makeDraggable(el) {
+  let isDragging = false;
+
+  const start = e => {
+    isDragging = true;
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    const rect = el.getBoundingClientRect();
+    offsetX = clientX - rect.left;
+    offsetY = clientY - rect.top;
+    el.style.zIndex = 100;
+    e.preventDefault();
+  };
+
+  const move = e => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    let newLeft = clientX - offsetX - field.getBoundingClientRect().left;
+    let newTop = clientY - offsetY - field.getBoundingClientRect().top;
+
+    newLeft = Math.round(newLeft / 10) * 10; // snap mais fino
+    newTop = Math.round(newTop / 10) * 10;
+    newLeft = Math.max(0, Math.min(920-76, newLeft));
+    newTop = Math.max(0, Math.min(520-46, newTop));
+
+    el.style.left = newLeft + "px";
+    el.style.top = newTop + "px";
+  };
+
+  const end = () => isDragging = false;
+
+  el.addEventListener("mousedown", start);
+  el.addEventListener("touchstart", start, {passive: false});
+  document.addEventListener("mousemove", move);
+  document.addEventListener("touchmove", move, {passive: false});
+  document.addEventListener("mouseup", end);
+  document.addEventListener("touchend", end);
+}
+
+field.addEventListener("dragover", e => e.preventDefault());
+
+field.addEventListener("drop", e => {
+  e.preventDefault();
+  if (!draggedElement) return;
+
+  const data = e.dataTransfer.getData("text/plain");
+  const idx = parseInt(data);
+  if (isNaN(idx)) return;
+
+  const rect = field.getBoundingClientRect();
+  let left = e.clientX - rect.left - 38;
+  let top = e.clientY - rect.top - 23;
+  left = Math.round(left / 10) * 10;
+  top = Math.round(top / 10) * 10;
+
+  const div = document.createElement("div");
+  div.className = "player";
+  div.contentEditable = true;
+  div.innerText = playerNames[idx] || "";
+  div.dataset.pos = "?";
+  div.style.left = Math.max(0, Math.min(920-76, left)) + "px";
+  div.style.top = Math.max(0, Math.min(520-46, top)) + "px";
+
+  makeDraggable(div);
+  field.appendChild(div);
+});
+
+// =============================================
+// Limpar e Reset
+// =============================================
+function clearPositions() {
+  field.innerHTML = "";
+  drawFieldLines();
+}
+
+function resetAll() {
+  if (!confirm("Reset total? Perdes tudo.")) return;
+  document.getElementById("teamName").value = "";
+  document.getElementById("opponent").value = "";
+  document.getElementById("matchDate").value = "";
+  document.getElementById("competition").value = "";
+  playerNames.fill("");
+  initPlantel();
+  clearPositions();
+  generateFormation();
+}
+
+// =============================================
+// PDF com cabeçalho nas duas páginas
+// =============================================
 async function generatePDFWithPlayerList() {
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
 
-  // Página 1: o campo
+  // Dados do cabeçalho
+  const teamName = document.getElementById("teamName").value.trim() || "Equipa";
+  const opponentName = document.getElementById("opponent").value.trim() || "Adversário";
+  const matchDate = document.getElementById("matchDate").value || "—";
+  const headerText = `${teamName} vs ${opponentName} – ${matchDate}`;
+
+  // Página 1: campo
   const canvas = await html2canvas(field, { scale: 3, backgroundColor: null });
   const imgData = canvas.toDataURL("image/png");
   const imgW = 270;
   const imgH = (canvas.height / canvas.width) * imgW;
-  pdf.addImage(imgData, "PNG", 10, 10, imgW, imgH);
 
-  // Página 2: lista dos 18 jogadores
+  pdf.setFontSize(16);
+  pdf.setTextColor(40);
+  pdf.text(headerText, 148.5, 12, { align: "center" });
+  pdf.setLineWidth(0.5);
+  pdf.line(10, 15, 287, 15);
+
+  pdf.addImage(imgData, "PNG", 10, 20, imgW, imgH);
+
+  // Página 2: lista + mesmo cabeçalho
   pdf.addPage();
 
+  pdf.setFontSize(16);
+  pdf.setTextColor(40);
+  pdf.text(headerText, 148.5, 12, { align: "center" });
+  pdf.line(10, 15, 287, 15);
+
   pdf.setFontSize(18);
-  pdf.text("Lista de Jogadores - " + (document.getElementById("teamName").value || "Equipa"), 20, 25);
+  pdf.text("Lista de Jogadores", 20, 35);
 
   pdf.setFontSize(14);
-  pdf.text("Plantel (1 a 18)", 20, 40);
+  pdf.text("Plantel (1 a 18)", 20, 48);
 
   pdf.setFontSize(12);
-  let y = 55;
+  let y = 65;
   const players = document.querySelectorAll("#playerList .player-slot");
-  players.forEach((slot, index) => {
+
+  players.forEach((slot) => {
     const number = slot.querySelector(".player-number").innerText;
-    const name = slot.querySelector(".player-name").innerText.trim() || "(vazio)";
-    pdf.text(`${number.padEnd(4)} ${name}`, 25, y);
+    const name = slot.querySelector(".player-name").innerText.trim() || "(sem nome)";
+    pdf.text(`${number.padEnd(5)} ${name}`, 25, y);
     y += 10;
 
-    // Quebra de página automática se passar do limite (A4 landscape ~ ~270mm altura útil)
     if (y > 190) {
       pdf.addPage();
-      y = 20;
+      pdf.setFontSize(16);
+      pdf.text(headerText, 148.5, 12, { align: "center" });
+      pdf.line(10, 15, 287, 15);
+      y = 30;
     }
   });
 
-  // Rodapé simples
   pdf.setFontSize(10);
+  pdf.setTextColor(100);
   pdf.text("Gerado por TactiBoard 11 – " + new Date().toLocaleDateString("pt-PT"), 20, 200);
 
-  pdf.save("TactiBoard_Campo_e_Lista_Jogadores.pdf");
-}
-
-// Funções de drag (mantém as tuas anteriores – makeDraggable, etc.)
-function makeDraggable(el) {
-  // ... copia a tua função makeDraggable aqui
-}
-
-// Limpar, reset, etc. (mantém as tuas)
-function clearPositions() { field.innerHTML = ""; drawFieldLines(); }
-function resetAll() {
-  if (confirm("Reset total?")) {
-    playerNames.fill("");
-    initPlantel();
-    clearPositions();
-    generateFormation();
-  }
+  pdf.save(`TactiBoard_${teamName.replace(/\s+/g, '_')}_vs_${opponentName.replace(/\s+/g, '_')}.pdf`);
 }
 
 // Inicialização
