@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>TactiBoard 11 – Profissional</title>
+<title>TactiBoard 11 – Profissional 2D</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -11,7 +11,7 @@
 body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
-  background: #0f172a;
+  background: #111;
   color: white;
 }
 header {
@@ -27,7 +27,7 @@ header {
   padding: 20px;
 }
 .sidebar {
-  width: 260px;
+  width: 280px;
   background: #1f2937;
   padding: 15px;
   border-radius: 10px;
@@ -73,12 +73,11 @@ header {
 .field {
   width: 900px;
   height: 500px;
-  background: linear-gradient(to right, #166534, #15803d);
+  background: #0b0b0b;
   margin: auto;
-  border-radius: 15px;
+  border-radius: 0px;
   position: relative;
-  border: 5px solid white;
-  box-shadow: 0 0 15px rgba(0,0,0,0.6);
+  border: 3px solid white;
 }
 .line-mid, .circle-mid {
   position: absolute;
@@ -98,6 +97,20 @@ header {
   left: 50%;
   transform: translate(-50%,-50%);
 }
+.area-grande {
+  position: absolute;
+  border: 2px solid white;
+}
+.area-pequena {
+  position: absolute;
+  border: 2px solid white;
+}
+.canto {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid white;
+}
 .player {
   position: absolute;
   width: 110px;
@@ -109,17 +122,21 @@ header {
   cursor: move;
   box-shadow: 0 3px 6px rgba(0,0,0,0.4);
 }
-/* Cores por posição */
-.def { background:#f87171; color:white; }
-.mid { background:#60a5fa; color:white; }
-.att { background:#facc15; color:black; }
-.gk  { background:#34d399; color:black; }
+.player.bola {
+  width: 20px !important;
+  height: 20px !important;
+  line-height: 20px !important;
+  border-radius: 50%;
+  font-size: 10px;
+  background: white;
+  color: black;
+}
 </style>
 </head>
 
 <body>
 
-<header>⚽ TactiBoard 11 – Profissional</header>
+<header>⚽ TactiBoard 11 – Profissional 2D</header>
 
 <div class="container">
 
@@ -139,6 +156,7 @@ header {
 
 <button onclick="generateFormation()">Aplicar Formação</button>
 <button onclick="clearField()">Limpar Campo</button>
+<button onclick="addBalls()">Bolas Paradas</button>
 <button onclick="downloadPDF()">Download PDF</button>
 
 <div class="plantel">
@@ -146,12 +164,13 @@ header {
 <div id="playerList"></div>
 <input type="text" id="newPlayer" placeholder="Adicionar jogador">
 <button onclick="addPlayer()">Adicionar</button>
-<p style="font-size:12px;color:#aaa;">Clique no nome do jogador para editar.</p>
+<p style="font-size:12px;color:#aaa;">Clique no nome do jogador para editar</p>
 </div>
 </div>
 
 <div class="field-container">
 <div class="field" id="field">
+<!-- Marcações padrão -->
 <div class="line-mid"></div>
 <div class="circle-mid"></div>
 </div>
@@ -162,78 +181,21 @@ header {
 <script>
 let selectedPlayer = null;
 
-// Adicionar jogador ao plantel lateral
+// Adicionar jogador ao plantel
 function addPlayer() {
   const name = document.getElementById("newPlayer").value;
-  if (!name) return;
+  if(!name) return;
   const div = document.createElement("div");
   div.className = "player-list";
   div.innerText = name;
-  div.contentEditable = "true"; // permite corrigir nomes depois
-  div.onclick = () => selectedPlayer = name;
+  div.contentEditable = "true"; 
+  div.onclick = ()=>selectedPlayer = name;
   document.getElementById("playerList").appendChild(div);
   document.getElementById("newPlayer").value = "";
 }
 
 // Limpar campo
 function clearField() { generateFormation(); }
-
-// Gerar formações
-function generateFormation() {
-  const field = document.getElementById("field");
-  field.innerHTML = '<div class="line-mid"></div><div class="circle-mid"></div>';
-  const formation = document.getElementById("formation").value;
-  let positions = [];
-
-  if (formation === "433") positions = [
-    [50,250,'gk'],
-    [200,80,'def'],[200,200,'def'],[200,320,'def'],[200,440,'def'],
-    [400,120,'mid'],[400,250,'mid'],[400,380,'mid'],
-    [650,80,'att'],[650,250,'att'],[650,420,'att']
-  ];
-
-  if (formation === "442") positions = [
-    [50,250,'gk'],
-    [200,80,'def'],[200,200,'def'],[200,320,'def'],[200,440,'def'],
-    [400,80,'mid'],[400,200,'mid'],[400,320,'mid'],[400,440,'mid'],
-    [650,170,'att'],[650,330,'att']
-  ];
-
-  if (formation === "352") positions = [
-    [50,250,'gk'],
-    [200,150,'def'],[200,250,'def'],[200,350,'def'],
-    [400,60,'mid'],[400,160,'mid'],[400,250,'mid'],[400,340,'mid'],[400,440,'mid'],
-    [650,180,'att'],[650,320,'att']
-  ];
-
-  if (formation === "532") positions = [
-    [50,250,'gk'],
-    [200,60,'def'],[200,150,'def'],[200,250,'def'],[200,350,'def'],[200,440,'def'],
-    [400,150,'mid'],[400,250,'mid'],[400,350,'mid'],
-    [650,180,'att'],[650,320,'att']
-  ];
-
-  // Nova formação: 3-5-2 ATUAL
-  if (formation === "352Atual") positions = [
-    [50,250,'gk'],           // GR
-    [200,100,'def'],[200,250,'def'],[200,400,'def'],  // 3 defesas
-    [300,50,'mid'], [350,150,'mid'],  // Alas recuados
-    [350,250,'mid'],                 // 10 central
-    [300,350,'mid'], [350,450,'mid'],  // Alas avançados / interiores
-    [500,150,'att'], [500,350,'att']  // 2 avançados
-  ];
-
-  positions.forEach(pos => {
-    const div = document.createElement("div");
-    div.className = "player "+pos[2];
-    div.contentEditable = true; // permite editar nome diretamente no campo
-    div.style.left = pos[0]+"px";
-    div.style.top = pos[1]+"px";
-    div.onclick = ()=>{ if(selectedPlayer){div.innerText=selectedPlayer;selectedPlayer=null;} };
-    makeDraggable(div);
-    field.appendChild(div);
-  });
-}
 
 // Drag & Drop
 function makeDraggable(el){
@@ -254,42 +216,123 @@ function makeDraggable(el){
   };
 }
 
-// PDF fiel ao site
-async function downloadPDF() {
-  const { jsPDF } = window.jspdf;
+// Gera formações usando todo o campo
+function generateFormation(){
   const field = document.getElementById("field");
+  field.innerHTML = '<div class="line-mid"></div><div class="circle-mid"></div>';
 
-  const canvas = await html2canvas(field, { scale:3, useCORS:true, allowTaint:true, backgroundColor:null });
-  const imgData = canvas.toDataURL("image/png");
+  // Marcas das áreas
+  const w=900,h=500;
+  const areaG = document.createElement("div");
+  areaG.className="area-grande";
+  areaG.style.left="0px";
+  areaG.style.top=(h*0.2)+"px";
+  areaG.style.width="120px";
+  areaG.style.height=(h*0.6)+"px";
+  field.appendChild(areaG);
 
-  const pdf = new jsPDF("landscape", "mm", "a4");
+  const areaP = document.createElement("div");
+  areaP.className="area-pequena";
+  areaP.style.left="0px";
+  areaP.style.top=(h*0.35)+"px";
+  areaP.style.width="50px";
+  areaP.style.height=(h*0.3)+"px";
+  field.appendChild(areaP);
 
-  // Tabela de informações
-  const startX = 10;
-  let startY = 10;
-  const cellWidth = 50;
-  const cellHeight = 8;
+  // Pontapé de canto
+  const cantoTL=document.createElement("div");
+  cantoTL.className="canto"; cantoTL.style.left="0px"; cantoTL.style.top="0px"; field.appendChild(cantoTL);
+  const cantoBL=document.createElement("div");
+  cantoBL.className="canto"; cantoBL.style.left="0px"; cantoBL.style.top=(h-20)+"px"; field.appendChild(cantoBL);
+  const cantoTR=document.createElement("div");
+  cantoTR.className="canto"; cantoTR.style.left=(w-20)+"px"; cantoTR.style.top="0px"; field.appendChild(cantoTR);
+  const cantoBR=document.createElement("div");
+  cantoBR.className="canto"; cantoBR.style.left=(w-20)+"px"; cantoBR.style.top=(h-20)+"px"; field.appendChild(cantoBR);
 
-  const gameInfo = [
-    ["Equipa", document.getElementById("teamName").value || "Equipa"],
-    ["Adversário", document.getElementById("opponent").value || "Adversário"],
-    ["Competição", document.getElementById("competition").value || ""],
-    ["Data", document.getElementById("matchDate").value || ""],
-    ["Formação", document.getElementById("formation").value || ""]
+  // Jogadores
+  const formation = document.getElementById("formation").value;
+  let positions=[];
+
+  if(formation==="433") positions = [
+    [0.05*w,0.5*h,'gk'],
+    [0.2*w,0.15*h,'def'],[0.2*w,0.5*h,'def'],[0.2*w,0.85*h,'def'],
+    [0.45*w,0.2*h,'mid'],[0.45*w,0.5*h,'mid'],[0.45*w,0.8*h,'mid'],
+    [0.7*w,0.15*h,'att'],[0.7*w,0.5*h,'att'],[0.7*w,0.85*h,'att']
+  ];
+  if(formation==="442") positions = [
+    [0.05*w,0.5*h,'gk'],
+    [0.2*w,0.1*h,'def'],[0.2*w,0.3*h,'def'],[0.2*w,0.7*h,'def'],[0.2*w,0.9*h,'def'],
+    [0.45*w,0.1*h,'mid'],[0.45*w,0.3*h,'mid'],[0.45*w,0.7*h,'mid'],[0.45*w,0.9*h,'mid'],
+    [0.7*w,0.3*h,'att'],[0.7*w,0.7*h,'att']
+  ];
+  if(formation==="352Atual") positions=[
+    [0.05*w,0.5*h,'gk'],
+    [0.2*w,0.15*h,'def'],[0.2*w,0.5*h,'def'],[0.2*w,0.85*h,'def'],
+    [0.35*w,0.05*h,'mid'],[0.35*w,0.2*h,'mid'],
+    [0.4*w,0.5*h,'mid'],
+    [0.35*w,0.8*h,'mid'],[0.35*w,0.95*h,'mid'],
+    [0.65*w,0.3*h,'att'],[0.65*w,0.7*h,'att']
+  ];
+
+  positions.forEach(pos=>{
+    const div=document.createElement("div");
+    div.className="player "+pos[2];
+    div.contentEditable="true";
+    div.style.left=pos[0]+"px";
+    div.style.top=pos[1]+"px";
+    makeDraggable(div);
+    field.appendChild(div);
+  });
+}
+
+// Adicionar bolas paradas
+function addBalls(){
+  const field=document.getElementById("field");
+  for(let i=0;i<6;i++){
+    const ball=document.createElement("div");
+    ball.className="player bola";
+    ball.style.left=50+i*30+"px";
+    ball.style.top="400px";
+    ball.innerText="B";
+    makeDraggable(ball);
+    field.appendChild(ball);
+  }
+}
+
+// PDF fiel
+async function downloadPDF(){
+  const { jsPDF }=window.jspdf;
+  const field=document.getElementById("field");
+  const canvas=await html2canvas(field,{scale:3,useCORS:true,allowTaint:true,backgroundColor:null});
+  const imgData=canvas.toDataURL("image/png");
+
+  const pdf=new jsPDF("landscape","mm","a4");
+
+  const startX=10;
+  let startY=10;
+  const cellWidth=50;
+  const cellHeight=8;
+
+  const gameInfo=[
+    ["Equipa",document.getElementById("teamName").value||"Equipa"],
+    ["Adversário",document.getElementById("opponent").value||"Adversário"],
+    ["Competição",document.getElementById("competition").value||""],
+    ["Data",document.getElementById("matchDate").value||""],
+    ["Formação",document.getElementById("formation").value||""]
   ];
 
   gameInfo.forEach((row,i)=>{
     pdf.rect(startX,startY+i*cellHeight,cellWidth,cellHeight);
     pdf.rect(startX+cellWidth,startY+i*cellHeight,cellWidth*2,cellHeight);
-    pdf.text(row[0], startX+2, startY+i*cellHeight+6);
-    pdf.text(row[1], startX+cellWidth+2, startY+i*cellHeight+6);
+    pdf.text(row[0],startX+2,startY+i*cellHeight+6);
+    pdf.text(row[1],startX+cellWidth+2,startY+i*cellHeight+6);
   });
 
-  const imgWidth = 270; // largura em mm
-  const imgHeight = (canvas.height / canvas.width) * imgWidth; 
-  pdf.addImage(imgData,"PNG",10,startY + gameInfo.length*cellHeight + 5,imgWidth,imgHeight);
+  const imgWidth=270;
+  const imgHeight=(canvas.height/canvas.width)*imgWidth;
+  pdf.addImage(imgData,"PNG",10,startY+gameInfo.length*cellHeight+5,imgWidth,imgHeight);
 
-  pdf.save("TactiBoard-Pro-Fiel.pdf");
+  pdf.save("TactiBoard-2D-Fiel.pdf");
 }
 
 generateFormation();
