@@ -2,23 +2,23 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>TactiBoard 11 – Profissional 2D</title>
+<title>TactiBoard 11 – Profissional 2D Verde</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-body {margin:0;font-family:'Segoe UI',sans-serif;background:#111;color:white;}
-header {padding:15px;background:#111827;text-align:center;font-size:24px;font-weight:bold;}
+body {margin:0;font-family:'Segoe UI',sans-serif;background:#fff;color:black;}
+header {padding:15px;background:#22c55e;text-align:center;font-size:24px;font-weight:bold;color:white;}
 .container {display:flex;gap:20px;padding:20px;}
-.sidebar {width:280px;background:#1f2937;padding:15px;border-radius:10px;}
+.sidebar {width:280px;background:#e0f2e9;padding:15px;border-radius:10px;}
 .sidebar input,.sidebar select {width:100%;margin-bottom:10px;padding:8px;border-radius:6px;border:none;}
-.sidebar button {width:100%;padding:10px;margin-top:5px;border-radius:8px;border:none;background:#22c55e;color:white;font-weight:bold;cursor:pointer;}
+.sidebar button {width:100%;padding:10px;margin-top:5px;border-radius:8px;border:none;background:#16a34a;color:white;font-weight:bold;cursor:pointer;}
 .plantel {margin-top:15px;}
 .player-list {background:white;color:black;padding:6px;margin-bottom:5px;border-radius:6px;cursor:pointer;text-align:center;font-weight:bold;}
 .player-list[contenteditable="true"] {outline:1px solid #ccc;}
 .field-container {flex:1;text-align:center;}
-.field {width:900px;height:500px;background:#0b0b0b;margin:auto;position:relative;border:3px solid white;}
+.field {width:900px;height:500px;background:#a0e4a0;margin:auto;position:relative;border:3px solid white;}
 .line-mid, .circle-mid {position:absolute;}
 .line-mid {width:2px;height:100%;background:white;left:50%;}
 .circle-mid {width:120px;height:120px;border:2px solid white;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);}
@@ -26,14 +26,12 @@ header {padding:15px;background:#111827;text-align:center;font-size:24px;font-we
 .area-pequena {position:absolute;border:2px solid white;}
 .canto {position:absolute;width:20px;height:20px;border:2px solid white;}
 .player {position:absolute;width:110px;height:45px;border-radius:10px;text-align:center;line-height:45px;font-weight:bold;cursor:move;box-shadow:0 3px 6px rgba(0,0,0,0.4);background:white;color:black;}
-.player.bola {width:20px !important;height:20px !important;line-height:20px !important;border-radius:50%;font-size:10px;background:white;color:black;}
-.arrow {position:absolute;width:2px;background:red;transform-origin:0 0;}
 </style>
 </head>
 
 <body>
 
-<header>⚽ TactiBoard 11 – Profissional 2D</header>
+<header>⚽ TactiBoard 11 – Verde Profissional</header>
 
 <div class="container">
 
@@ -53,8 +51,6 @@ header {padding:15px;background:#111827;text-align:center;font-size:24px;font-we
 
 <button onclick="generateFormation()">Aplicar Formação</button>
 <button onclick="clearField()">Limpar Campo</button>
-<button onclick="addBalls()">Bolas Paradas</button>
-<button onclick="addArrow()">Adicionar Setas</button>
 <button onclick="downloadPDF()">Download PDF</button>
 
 <div class="plantel">
@@ -62,7 +58,7 @@ header {padding:15px;background:#111827;text-align:center;font-size:24px;font-we
 <div id="playerList"></div>
 <input type="text" id="newPlayer" placeholder="Adicionar jogador">
 <button onclick="addPlayer()">Adicionar</button>
-<p style="font-size:12px;color:#aaa;">Clique no nome do jogador para editar</p>
+<p style="font-size:12px;color:#555;">Clique no nome do jogador para editar</p>
 </div>
 </div>
 
@@ -132,7 +128,15 @@ function generateFormation(){
 
   if(formation==="433") positions=[[0.05*w,0.5*h,'player'],[0.2*w,0.15*h,'player'],[0.2*w,0.5*h,'player'],[0.2*w,0.85*h,'player'],[0.45*w,0.2*h,'player'],[0.45*w,0.5*h,'player'],[0.45*w,0.8*h,'player'],[0.7*w,0.15*h,'player'],[0.7*w,0.5*h,'player'],[0.7*w,0.85*h,'player']];
   if(formation==="442") positions=[[0.05*w,0.5*h,'player'],[0.2*w,0.1*h,'player'],[0.2*w,0.3*h,'player'],[0.2*w,0.7*h,'player'],[0.2*w,0.9*h,'player'],[0.45*w,0.1*h,'player'],[0.45*w,0.3*h,'player'],[0.45*w,0.7*h,'player'],[0.45*w,0.9*h,'player'],[0.7*w,0.3*h,'player'],[0.7*w,0.7*h,'player']];
-  if(formation==="352Atual") positions=[[0.05*w,0.5*h,'player'],[0.2*w,0.15*h,'player'],[0.2*w,0.5*h,'player'],[0.2*w,0.85*h,'player'],[0.35*w,0.05*h,'player'],[0.35*w,0.2*h,'player'],[0.4*w,0.5*h,'player'],[0.35*w,0.8*h,'player'],[0.35*w,0.95*h,'player'],[0.65*w,0.3*h,'player'],[0.65*w,0.7*h,'player']];
+  
+  // 3-5-2 ATUAL ajustada
+  if(formation==="352Atual") positions=[
+    [0.05*w,0.5*h,'player'],             // GR
+    [0.2*w,0.35*h,'player'],[0.2*w,0.5*h,'player'],[0.2*w,0.65*h,'player'], // Centrais mais próximos
+    [0.4*w,0.2*h,'player'],[0.4*w,0.35*h,'player'],[0.4*w,0.5*h,'player'],[0.4*w,0.65*h,'player'],[0.4*w,0.8*h,'player'], // Médios mais fechados
+    [0.65*w,0.35*h,'player'],[0.65*w,0.65*h,'player'], // Atacantes
+    [0.55*w,0.5*h,'player'] // Posição 10 mais avançada
+  ];
 
   positions.forEach(pos=>{
     const div=document.createElement("div");
@@ -143,27 +147,6 @@ function generateFormation(){
     makeDraggable(div);
     field.appendChild(div);
   });
-}
-
-// Adicionar bolas paradas (editáveis)
-function addBalls(){
-  const field=document.getElementById("field");
-  for(let i=0;i<6;i++){
-    const ball=document.createElement("div");
-    ball.className="player bola"; ball.style.left=50+i*30+"px"; ball.style.top="400px"; ball.innerText="B";
-    makeDraggable(ball);
-    field.appendChild(ball);
-  }
-}
-
-// Adicionar setas (trajetórias)
-function addArrow(){
-  const field=document.getElementById("field");
-  const arrow=document.createElement("div");
-  arrow.className="arrow";
-  arrow.style.left="200px"; arrow.style.top="200px"; arrow.style.height="50px"; arrow.style.transform="rotate(45deg)";
-  field.appendChild(arrow);
-  makeDraggable(arrow);
 }
 
 // PDF fiel
@@ -180,7 +163,7 @@ async function downloadPDF(){
   const imgWidth=270;
   const imgHeight=(canvas.height/canvas.width)*imgWidth;
   pdf.addImage(imgData,"PNG",10,startY+gameInfo.length*cellHeight+5,imgWidth,imgHeight);
-  pdf.save("TactiBoard-2D-Final.pdf");
+  pdf.save("TactiBoard-2D-Verde.pdf");
 }
 
 generateFormation();
