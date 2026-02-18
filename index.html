@@ -242,18 +242,39 @@ function makeDraggable(el){
 async function downloadPDF(){
   const { jsPDF } = window.jspdf;
   const field = document.getElementById("field");
+
+  // Captura o campo de futebol como imagem
   const canvas = await html2canvas(field);
   const imgData = canvas.toDataURL("image/png");
 
-  const pdf = new jsPDF("landscape");
+  const pdf = new jsPDF("portrait"); // Muda para vertical
   pdf.setFontSize(14);
-  pdf.text(document.getElementById("teamName").value||"Equipa",10,10);
-  pdf.text("vs "+(document.getElementById("opponent").value||"Adversário"),10,20);
-  pdf.text(document.getElementById("competition").value||"",10,30);
 
-  pdf.addImage(imgData,"PNG",10,40,270,150);
+  // Cabeçalho estilo tabela vertical
+  const startX = 10;
+  let startY = 10;
+  const lineHeight = 10;
+
+  const gameInfo = [
+    ["Equipa", document.getElementById("teamName").value || "Equipa"],
+    ["Adversário", document.getElementById("opponent").value || "Adversário"],
+    ["Competição", document.getElementById("competition").value || ""],
+    ["Data", document.getElementById("matchDate").value || ""]
+  ];
+
+  gameInfo.forEach(row => {
+    pdf.text(row[0], startX, startY);        // Cabeçalho vertical
+    pdf.text(":", startX + 40, startY);     // Separador
+    pdf.text(row[1], startX + 50, startY);  // Valor
+    startY += lineHeight;
+  });
+
+  // Adiciona o campo de futebol como imagem abaixo da tabela
+  pdf.addImage(imgData,"PNG",10,startY+5,180,100);
+
   pdf.save("TactiBoard-Profissional.pdf");
 }
+
 
 generateFormation();
 </script>
