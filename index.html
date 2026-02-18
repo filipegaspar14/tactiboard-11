@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>TactiBoard 11 Personal</title>
+<title>TactiBoard 11 – Pessoal Profissional</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -19,18 +19,18 @@ header {
   padding: 15px;
   background: #111827;
   text-align: center;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: bold;
 }
 
 .container {
   display: flex;
-  padding: 20px;
   gap: 20px;
+  padding: 20px;
 }
 
 .sidebar {
-  width: 250px;
+  width: 260px;
   background: #1f2937;
   padding: 15px;
   border-radius: 10px;
@@ -84,47 +84,43 @@ header {
   border-radius: 15px;
   position: relative;
   border: 5px solid white;
+  box-shadow: 0 0 15px rgba(0,0,0,0.6);
 }
 
-.line-mid {
+/* Linhas de campo e áreas */
+.line-mid, .line-goal, .line-area {
   position: absolute;
-  width: 2px;
-  height: 100%;
   background: white;
-  left: 50%;
 }
 
-.circle-mid {
-  position: absolute;
-  width: 120px;
-  height: 120px;
-  border: 2px solid white;
-  border-radius: 50%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
+.line-mid { width: 2px; height: 100%; left: 50%; }
+.circle-mid { position:absolute;width:120px;height:120px;border:2px solid white;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);}
+.line-goal { width:2px;height:80px; left:10px; top:210px; }
+.line-area { border:2px solid white; position:absolute; width:120px; height:180px; left:0px; top:160px; border-radius:10px; }
 
 .player {
   position: absolute;
   width: 110px;
   height: 45px;
-  background: white;
-  color: black;
   border-radius: 10px;
   text-align: center;
   line-height: 45px;
-  font-size: 13px;
   font-weight: bold;
   cursor: move;
   box-shadow: 0 3px 6px rgba(0,0,0,0.4);
 }
+
+/* Cores por posição */
+.def { background:#f87171; color:white; } /* Defesa */
+.mid { background:#60a5fa; color:white; } /* Meio */
+.att { background:#facc15; color:black; } /* Ataque */
+.gk  { background:#34d399; color:black; } /* Guarda-Redes */
 </style>
 </head>
 
 <body>
 
-<header>⚽ TactiBoard 11 – Pessoal</header>
+<header>⚽ TactiBoard 11 – Pessoal Profissional</header>
 
 <div class="container">
 
@@ -165,23 +161,24 @@ header {
 <script>
 let selectedPlayer = null;
 
+// Adicionar jogador ao plantel lateral
 function addPlayer() {
   const name = document.getElementById("newPlayer").value;
   if (!name) return;
-
   const div = document.createElement("div");
   div.className = "player-list";
   div.innerText = name;
   div.onclick = () => selectedPlayer = name;
-
   document.getElementById("playerList").appendChild(div);
   document.getElementById("newPlayer").value = "";
 }
 
+// Limpar campo
 function clearField() {
   generateFormation();
 }
 
+// Função principal: gerar formações
 function generateFormation() {
   const field = document.getElementById("field");
   field.innerHTML = '<div class="line-mid"></div><div class="circle-mid"></div>';
@@ -189,66 +186,73 @@ function generateFormation() {
   const formation = document.getElementById("formation").value;
   let positions = [];
 
-  if (formation === "433") positions = [[50,250],[200,80],[200,200],[200,320],[200,440],[400,120],[400,250],[400,380],[650,80],[650,250],[650,420]];
-  if (formation === "442") positions = [[50,250],[200,80],[200,200],[200,320],[200,440],[400,80],[400,200],[400,320],[400,440],[650,170],[650,330]];
-  if (formation === "352") positions = [[50,250],[200,150],[200,250],[200,350],[400,60],[400,160],[400,250],[400,340],[400,440],[650,180],[650,320]];
-  if (formation === "532") positions = [[50,250],[200,60],[200,150],[200,250],[200,350],[200,440],[400,150],[400,250],[400,350],[650,180],[650,320]];
+  if (formation === "433") positions = [
+    [50,250,'gk'],[200,80,'def'],[200,200,'def'],[200,320,'def'],[200,440,'def'],
+    [400,120,'mid'],[400,250,'mid'],[400,380,'mid'],
+    [650,80,'att'],[650,250,'att'],[650,420,'att']
+  ];
+  if (formation === "442") positions = [
+    [50,250,'gk'],[200,80,'def'],[200,200,'def'],[200,320,'def'],[200,440,'def'],
+    [400,80,'mid'],[400,200,'mid'],[400,320,'mid'],[400,440,'mid'],
+    [650,170,'att'],[650,330,'att']
+  ];
+  if (formation === "352") positions = [
+    [50,250,'gk'],[200,150,'def'],[200,250,'def'],[200,350,'def'],
+    [400,60,'mid'],[400,160,'mid'],[400,250,'mid'],[400,340,'mid'],[400,440,'mid'],
+    [650,180,'att'],[650,320,'att']
+  ];
+  if (formation === "532") positions = [
+    [50,250,'gk'],[200,60,'def'],[200,150,'def'],[200,250,'def'],[200,350,'def'],[200,440,'def'],
+    [400,150,'mid'],[400,250,'mid'],[400,350,'mid'],
+    [650,180,'att'],[650,320,'att']
+  ];
 
   positions.forEach(pos => {
     const div = document.createElement("div");
-    div.className = "player";
+    div.className = "player " + pos[2];
     div.contentEditable = true;
     div.style.left = pos[0] + "px";
     div.style.top = pos[1] + "px";
-
-    div.onclick = () => {
-      if (selectedPlayer) {
-        div.innerText = selectedPlayer;
-        selectedPlayer = null;
-      }
-    };
-
+    div.onclick = () => { if(selectedPlayer){div.innerText=selectedPlayer;selectedPlayer=null;} };
     makeDraggable(div);
     field.appendChild(div);
   });
 }
 
-function makeDraggable(el) {
-  el.onmousedown = function(e) {
+// Drag & Drop
+function makeDraggable(el){
+  el.onmousedown = function(e){
     e.preventDefault();
     let shiftX = e.clientX - el.getBoundingClientRect().left;
     let shiftY = e.clientY - el.getBoundingClientRect().top;
-
-    function moveAt(pageX, pageY) {
-      el.style.left = pageX - shiftX - el.parentElement.getBoundingClientRect().left + 'px';
-      el.style.top = pageY - shiftY - el.parentElement.getBoundingClientRect().top + 'px';
+    function moveAt(pageX,pageY){
+      el.style.left = pageX - shiftX - el.parentElement.getBoundingClientRect().left+'px';
+      el.style.top = pageY - shiftY - el.parentElement.getBoundingClientRect().top+'px';
     }
-
-    function onMouseMove(e) { moveAt(e.pageX, e.pageY); }
-    document.addEventListener('mousemove', onMouseMove);
-
-    document.onmouseup = function() {
-      document.removeEventListener('mousemove', onMouseMove);
-      document.onmouseup = null;
-    };
+    function onMouseMove(e){ moveAt(e.pageX,e.pageY);}
+    document.addEventListener('mousemove',onMouseMove);
+    document.onmouseup = function(){
+      document.removeEventListener('mousemove',onMouseMove);
+      document.onmouseup=null;
+    }
   };
 }
 
-async function downloadPDF() {
+// Download PDF
+async function downloadPDF(){
   const { jsPDF } = window.jspdf;
   const field = document.getElementById("field");
-
   const canvas = await html2canvas(field);
   const imgData = canvas.toDataURL("image/png");
 
   const pdf = new jsPDF("landscape");
   pdf.setFontSize(14);
-  pdf.text(document.getElementById("teamName").value || "Equipa", 10, 10);
-  pdf.text("vs " + (document.getElementById("opponent").value || "Adversário"), 10, 20);
-  pdf.text(document.getElementById("competition").value || "", 10, 30);
+  pdf.text(document.getElementById("teamName").value||"Equipa",10,10);
+  pdf.text("vs "+(document.getElementById("opponent").value||"Adversário"),10,20);
+  pdf.text(document.getElementById("competition").value||"",10,30);
 
-  pdf.addImage(imgData, "PNG", 10, 40, 270, 150);
-  pdf.save("TactiBoard-Pessoal.pdf");
+  pdf.addImage(imgData,"PNG",10,40,270,150);
+  pdf.save("TactiBoard-Profissional.pdf");
 }
 
 generateFormation();
