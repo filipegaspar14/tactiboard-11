@@ -11,7 +11,7 @@
 body {margin:0;font-family:'Segoe UI',sans-serif;background:#fff;color:black;}
 header {padding:15px;background:#22c55e;text-align:center;font-size:24px;font-weight:bold;color:white;}
 .container {display:flex;gap:20px;padding:20px;}
-.sidebar {width:280px;background:#e0f2e9;padding:15px;border-radius:10px;}
+.sidebar {width:300px;background:#e0f2e9;padding:15px;border-radius:10px;}
 .sidebar input,.sidebar select {width:100%;margin-bottom:10px;padding:8px;border-radius:6px;border:none;}
 .sidebar button {width:100%;padding:10px;margin-top:5px;border-radius:8px;border:none;background:#16a34a;color:white;font-weight:bold;cursor:pointer;}
 .plantel {margin-top:15px;}
@@ -26,6 +26,11 @@ header {padding:15px;background:#22c55e;text-align:center;font-size:24px;font-we
 .area-pequena {position:absolute;border:2px solid white;}
 .canto {position:absolute;width:20px;height:20px;border:2px solid white;}
 .player {position:absolute;width:110px;height:45px;border-radius:10px;text-align:center;line-height:45px;font-weight:bold;cursor:move;box-shadow:0 3px 6px rgba(0,0,0,0.4);background:white;color:black;}
+.legend {margin-top:15px;background:#f0f0f0;color:black;padding:10px;border-radius:8px;}
+.legend span {display:inline-block;width:20px;height:20px;margin-right:5px;vertical-align:middle;}
+.def {background:#f87171;}
+.mid {background:#facc15;}
+.att {background:#60a5fa;}
 </style>
 </head>
 
@@ -42,11 +47,11 @@ header {padding:15px;background:#22c55e;text-align:center;font-size:24px;font-we
 <input type="text" id="competition" placeholder="Competição">
 
 <select id="formation">
+<option value="352Atual" selected>3-5-2 ATUAL (Preset)</option>
 <option value="433">4-3-3</option>
 <option value="442">4-4-2</option>
 <option value="352">3-5-2</option>
 <option value="532">5-3-2</option>
-<option value="352Atual">3-5-2 ATUAL</option>
 </select>
 
 <button onclick="generateFormation()">Aplicar Formação</button>
@@ -54,11 +59,16 @@ header {padding:15px;background:#22c55e;text-align:center;font-size:24px;font-we
 <button onclick="downloadPDF()">Download PDF</button>
 
 <div class="plantel">
-<h3>Plantel</h3>
+<h3>Plantel (18 jogadores)</h3>
 <div id="playerList"></div>
 <input type="text" id="newPlayer" placeholder="Adicionar jogador">
 <button onclick="addPlayer()">Adicionar</button>
 <p style="font-size:12px;color:#555;">Clique no nome do jogador para editar</p>
+</div>
+
+<div class="legend">
+<h4>Legenda de posições:</h4>
+<p><span class="def"></span> Defesa | <span class="mid"></span> Médio | <span class="att"></span> Avançado | GR = Guarda-Redes | 10 = Médio Ofensivo</p>
 </div>
 </div>
 
@@ -74,7 +84,20 @@ header {padding:15px;background:#22c55e;text-align:center;font-size:24px;font-we
 <script>
 let selectedPlayer = null;
 
-// Plantel lateral
+// Inicializa 18 espaços no plantel
+function initPlantel(){
+  const list = document.getElementById("playerList");
+  for(let i=0;i<18;i++){
+    const div=document.createElement("div");
+    div.className="player-list";
+    div.contentEditable="true";
+    div.innerText="";
+    div.onclick=()=>selectedPlayer=null;
+    list.appendChild(div);
+  }
+}
+
+// Adicionar jogador extra
 function addPlayer(){
   const name = document.getElementById("newPlayer").value;
   if(!name) return;
@@ -126,16 +149,16 @@ function generateFormation(){
   const formation=document.getElementById("formation").value;
   let positions=[];
 
-  if(formation==="433") positions=[[0.05*w,0.5*h,'player'],[0.2*w,0.15*h,'player'],[0.2*w,0.5*h,'player'],[0.2*w,0.85*h,'player'],[0.45*w,0.2*h,'player'],[0.45*w,0.5*h,'player'],[0.45*w,0.8*h,'player'],[0.7*w,0.15*h,'player'],[0.7*w,0.5*h,'player'],[0.7*w,0.85*h,'player']];
-  if(formation==="442") positions=[[0.05*w,0.5*h,'player'],[0.2*w,0.1*h,'player'],[0.2*w,0.3*h,'player'],[0.2*w,0.7*h,'player'],[0.2*w,0.9*h,'player'],[0.45*w,0.1*h,'player'],[0.45*w,0.3*h,'player'],[0.45*w,0.7*h,'player'],[0.45*w,0.9*h,'player'],[0.7*w,0.3*h,'player'],[0.7*w,0.7*h,'player']];
+  if(formation==="433") positions=[[0.05*w,0.5*h,'def'],[0.2*w,0.15*h,'def'],[0.2*w,0.5*h,'def'],[0.2*w,0.85*h,'def'],[0.45*w,0.2*h,'mid'],[0.45*w,0.5*h,'mid'],[0.45*w,0.8*h,'mid'],[0.7*w,0.15*h,'att'],[0.7*w,0.5*h,'att'],[0.7*w,0.85*h,'att']];
+  if(formation==="442") positions=[[0.05*w,0.5*h,'def'],[0.2*w,0.1*h,'def'],[0.2*w,0.3*h,'def'],[0.2*w,0.7*h,'def'],[0.2*w,0.9*h,'def'],[0.45*w,0.1*h,'mid'],[0.45*w,0.3*h,'mid'],[0.45*w,0.7*h,'mid'],[0.45*w,0.9*h,'mid'],[0.7*w,0.3*h,'att'],[0.7*w,0.7*h,'att']];
   
-  // 3-5-2 ATUAL ajustada
+  // 3-5-2 ATUAL como preset 11 jogadores
   if(formation==="352Atual") positions=[
-    [0.05*w,0.5*h,'player'],             // GR
-    [0.2*w,0.35*h,'player'],[0.2*w,0.5*h,'player'],[0.2*w,0.65*h,'player'], // Centrais mais próximos
-    [0.4*w,0.2*h,'player'],[0.4*w,0.35*h,'player'],[0.4*w,0.5*h,'player'],[0.4*w,0.65*h,'player'],[0.4*w,0.8*h,'player'], // Médios mais fechados
-    [0.65*w,0.35*h,'player'],[0.65*w,0.65*h,'player'], // Atacantes
-    [0.55*w,0.5*h,'player'] // Posição 10 mais avançada
+    [0.05*w,0.5*h,'def'],           // GR
+    [0.2*w,0.35*h,'def'],[0.2*w,0.5*h,'def'],[0.2*w,0.65*h,'def'], // 3 Centrais
+    [0.4*w,0.15*h,'mid'],[0.4*w,0.35*h,'mid'],[0.4*w,0.5*h,'mid'],[0.4*w,0.65*h,'mid'],[0.4*w,0.85*h,'mid'], // 5 Médios
+    [0.65*w,0.35*h,'att'],[0.65*w,0.65*h,'att'], // 2 Avançados
+    [0.55*w,0.5*h,'mid'] // 10 Ofensivo (dentro dos 5 médios)
   ];
 
   positions.forEach(pos=>{
@@ -163,9 +186,11 @@ async function downloadPDF(){
   const imgWidth=270;
   const imgHeight=(canvas.height/canvas.width)*imgWidth;
   pdf.addImage(imgData,"PNG",10,startY+gameInfo.length*cellHeight+5,imgWidth,imgHeight);
-  pdf.save("TactiBoard-2D-Verde.pdf");
+  pdf.save("TactiBoard-2D-Verde-Preset.pdf");
 }
 
+// Inicializa plantel e formação preset
+initPlantel();
 generateFormation();
 </script>
 
