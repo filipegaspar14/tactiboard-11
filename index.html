@@ -2,8 +2,9 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>TactiBoard 11 – PDF Profissional</title>
+<title>TactiBoard 11 – Profissional</title>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
@@ -62,6 +63,9 @@ header {
   text-align: center;
   font-weight: bold;
 }
+.player-list[contenteditable="true"] {
+  outline: 1px solid #ccc;
+}
 .field-container {
   flex: 1;
   text-align: center;
@@ -115,7 +119,7 @@ header {
 
 <body>
 
-<header>⚽ TactiBoard 11 – PDF Profissional</header>
+<header>⚽ TactiBoard 11 – Profissional</header>
 
 <div class="container">
 
@@ -130,6 +134,7 @@ header {
 <option value="442">4-4-2</option>
 <option value="352">3-5-2</option>
 <option value="532">5-3-2</option>
+<option value="352Atual">3-5-2 ATUAL</option>
 </select>
 
 <button onclick="generateFormation()">Aplicar Formação</button>
@@ -141,6 +146,7 @@ header {
 <div id="playerList"></div>
 <input type="text" id="newPlayer" placeholder="Adicionar jogador">
 <button onclick="addPlayer()">Adicionar</button>
+<p style="font-size:12px;color:#aaa;">Clique no nome do jogador para editar.</p>
 </div>
 </div>
 
@@ -163,6 +169,7 @@ function addPlayer() {
   const div = document.createElement("div");
   div.className = "player-list";
   div.innerText = name;
+  div.contentEditable = "true"; // permite corrigir nomes depois
   div.onclick = () => selectedPlayer = name;
   document.getElementById("playerList").appendChild(div);
   document.getElementById("newPlayer").value = "";
@@ -179,30 +186,47 @@ function generateFormation() {
   let positions = [];
 
   if (formation === "433") positions = [
-    [50,250,'gk'],[200,80,'def'],[200,200,'def'],[200,320,'def'],[200,440,'def'],
+    [50,250,'gk'],
+    [200,80,'def'],[200,200,'def'],[200,320,'def'],[200,440,'def'],
     [400,120,'mid'],[400,250,'mid'],[400,380,'mid'],
     [650,80,'att'],[650,250,'att'],[650,420,'att']
   ];
+
   if (formation === "442") positions = [
-    [50,250,'gk'],[200,80,'def'],[200,200,'def'],[200,320,'def'],[200,440,'def'],
+    [50,250,'gk'],
+    [200,80,'def'],[200,200,'def'],[200,320,'def'],[200,440,'def'],
     [400,80,'mid'],[400,200,'mid'],[400,320,'mid'],[400,440,'mid'],
     [650,170,'att'],[650,330,'att']
   ];
+
   if (formation === "352") positions = [
-    [50,250,'gk'],[200,150,'def'],[200,250,'def'],[200,350,'def'],
+    [50,250,'gk'],
+    [200,150,'def'],[200,250,'def'],[200,350,'def'],
     [400,60,'mid'],[400,160,'mid'],[400,250,'mid'],[400,340,'mid'],[400,440,'mid'],
     [650,180,'att'],[650,320,'att']
   ];
+
   if (formation === "532") positions = [
-    [50,250,'gk'],[200,60,'def'],[200,150,'def'],[200,250,'def'],[200,350,'def'],[200,440,'def'],
+    [50,250,'gk'],
+    [200,60,'def'],[200,150,'def'],[200,250,'def'],[200,350,'def'],[200,440,'def'],
     [400,150,'mid'],[400,250,'mid'],[400,350,'mid'],
     [650,180,'att'],[650,320,'att']
+  ];
+
+  // Nova formação: 3-5-2 ATUAL
+  if (formation === "352Atual") positions = [
+    [50,250,'gk'],           // GR
+    [200,100,'def'],[200,250,'def'],[200,400,'def'],  // 3 defesas
+    [300,50,'mid'], [350,150,'mid'],  // Alas recuados
+    [350,250,'mid'],                 // 10 central
+    [300,350,'mid'], [350,450,'mid'],  // Alas avançados / interiores
+    [500,150,'att'], [500,350,'att']  // 2 avançados
   ];
 
   positions.forEach(pos => {
     const div = document.createElement("div");
     div.className = "player "+pos[2];
-    div.contentEditable = true;
+    div.contentEditable = true; // permite editar nome diretamente no campo
     div.style.left = pos[0]+"px";
     div.style.top = pos[1]+"px";
     div.onclick = ()=>{ if(selectedPlayer){div.innerText=selectedPlayer;selectedPlayer=null;} };
@@ -230,11 +254,17 @@ function makeDraggable(el){
   };
 }
 
-// PDF com tabela de cabeçalhos + campo + jogadores
-function downloadPDF(){
+// PDF fiel ao site
+async function downloadPDF() {
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF("portrait");
-  pdf.setFontSize(12);
+  const field = document.getElementById("field");
+
+  const canvas = await html2canvas(field, { scale:3, useCORS:true, allowTaint:true, backgroundColor:null });
+  const imgData = canvas.toDataURL("image/png");
+
+  const pdf = new jsPDF("landscape", "mm", "a4");
+
+  // Tabela de informações
   const startX = 10;
   let startY = 10;
   const cellWidth = 50;
@@ -244,43 +274,22 @@ function downloadPDF(){
     ["Equipa", document.getElementById("teamName").value || "Equipa"],
     ["Adversário", document.getElementById("opponent").value || "Adversário"],
     ["Competição", document.getElementById("competition").value || ""],
-    ["Data", document.getElementById("matchDate").value || ""]
+    ["Data", document.getElementById("matchDate").value || ""],
+    ["Formação", document.getElementById("formation").value || ""]
   ];
 
-  // Desenhar tabela
   gameInfo.forEach((row,i)=>{
-    pdf.rect(startX,startY+i*cellHeight,cellWidth,cellHeight); // Cabeçalho
-    pdf.rect(startX+cellWidth,startY+i*cellHeight,cellWidth*2,cellHeight); // Valor
+    pdf.rect(startX,startY+i*cellHeight,cellWidth,cellHeight);
+    pdf.rect(startX+cellWidth,startY+i*cellHeight,cellWidth*2,cellHeight);
     pdf.text(row[0], startX+2, startY+i*cellHeight+6);
     pdf.text(row[1], startX+cellWidth+2, startY+i*cellHeight+6);
   });
 
-  // Campo de futebol
-  const fieldX = 10;
-  const fieldY = startY + gameInfo.length*cellHeight + 10;
-  const fieldW = 180;
-  const fieldH = 100;
-  pdf.setDrawColor(0);
-  pdf.setLineWidth(0.5);
-  pdf.rect(fieldX, fieldY, fieldW, fieldH);
-  pdf.line(fieldX+fieldW/2, fieldY, fieldX+fieldW/2, fieldY+fieldH);
-  pdf.circle(fieldX+fieldW/2, fieldY+fieldH/2, 10);
+  const imgWidth = 270; // largura em mm
+  const imgHeight = (canvas.height / canvas.width) * imgWidth; 
+  pdf.addImage(imgData,"PNG",10,startY + gameInfo.length*cellHeight + 5,imgWidth,imgHeight);
 
-  // Jogadores
-  const players = document.querySelectorAll(".player");
-  players.forEach(p=>{
-    const rectX = fieldX + (parseFloat(p.style.left)/900)*fieldW;
-    const rectY = fieldY + (parseFloat(p.style.top)/500)*fieldH;
-    const rectW = 12;
-    const rectH = 6;
-    pdf.setFillColor(255,255,255);
-    pdf.rect(rectX, rectY, rectW, rectH, "F");
-    pdf.setTextColor(0,0,0);
-    pdf.setFontSize(6);
-    pdf.text(p.innerText||"", rectX+1, rectY+5);
-  });
-
-  pdf.save("TactiBoard-Pro.pdf");
+  pdf.save("TactiBoard-Pro-Fiel.pdf");
 }
 
 generateFormation();
