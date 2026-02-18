@@ -2,9 +2,8 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>TactiBoard 11 – Pessoal Profissional</title>
+<title>TactiBoard 11 – PDF Profissional</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
@@ -14,7 +13,6 @@ body {
   background: #0f172a;
   color: white;
 }
-
 header {
   padding: 15px;
   background: #111827;
@@ -22,20 +20,17 @@ header {
   font-size: 24px;
   font-weight: bold;
 }
-
 .container {
   display: flex;
   gap: 20px;
   padding: 20px;
 }
-
 .sidebar {
   width: 260px;
   background: #1f2937;
   padding: 15px;
   border-radius: 10px;
 }
-
 .sidebar input, .sidebar select {
   width: 100%;
   margin-bottom: 10px;
@@ -43,7 +38,6 @@ header {
   border-radius: 6px;
   border: none;
 }
-
 .sidebar button {
   width: 100%;
   padding: 10px;
@@ -55,11 +49,9 @@ header {
   font-weight: bold;
   cursor: pointer;
 }
-
 .plantel {
   margin-top: 15px;
 }
-
 .player-list {
   background: white;
   color: black;
@@ -70,12 +62,10 @@ header {
   text-align: center;
   font-weight: bold;
 }
-
 .field-container {
   flex: 1;
   text-align: center;
 }
-
 .field {
   width: 900px;
   height: 500px;
@@ -86,18 +76,24 @@ header {
   border: 5px solid white;
   box-shadow: 0 0 15px rgba(0,0,0,0.6);
 }
-
-/* Linhas de campo e áreas */
-.line-mid, .line-goal, .line-area {
+.line-mid, .circle-mid {
   position: absolute;
-  background: white;
 }
-
-.line-mid { width: 2px; height: 100%; left: 50%; }
-.circle-mid { position:absolute;width:120px;height:120px;border:2px solid white;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);}
-.line-goal { width:2px;height:80px; left:10px; top:210px; }
-.line-area { border:2px solid white; position:absolute; width:120px; height:180px; left:0px; top:160px; border-radius:10px; }
-
+.line-mid {
+  width: 2px;
+  height: 100%;
+  background: white;
+  left: 50%;
+}
+.circle-mid {
+  width: 120px;
+  height: 120px;
+  border: 2px solid white;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+}
 .player {
   position: absolute;
   width: 110px;
@@ -109,18 +105,17 @@ header {
   cursor: move;
   box-shadow: 0 3px 6px rgba(0,0,0,0.4);
 }
-
 /* Cores por posição */
-.def { background:#f87171; color:white; } /* Defesa */
-.mid { background:#60a5fa; color:white; } /* Meio */
-.att { background:#facc15; color:black; } /* Ataque */
-.gk  { background:#34d399; color:black; } /* Guarda-Redes */
+.def { background:#f87171; color:white; }
+.mid { background:#60a5fa; color:white; }
+.att { background:#facc15; color:black; }
+.gk  { background:#34d399; color:black; }
 </style>
 </head>
 
 <body>
 
-<header>⚽ TactiBoard 11 – Pessoal Profissional</header>
+<header>⚽ TactiBoard 11 – PDF Profissional</header>
 
 <div class="container">
 
@@ -174,15 +169,12 @@ function addPlayer() {
 }
 
 // Limpar campo
-function clearField() {
-  generateFormation();
-}
+function clearField() { generateFormation(); }
 
-// Função principal: gerar formações
+// Gerar formações
 function generateFormation() {
   const field = document.getElementById("field");
   field.innerHTML = '<div class="line-mid"></div><div class="circle-mid"></div>';
-
   const formation = document.getElementById("formation").value;
   let positions = [];
 
@@ -209,11 +201,11 @@ function generateFormation() {
 
   positions.forEach(pos => {
     const div = document.createElement("div");
-    div.className = "player " + pos[2];
+    div.className = "player "+pos[2];
     div.contentEditable = true;
-    div.style.left = pos[0] + "px";
-    div.style.top = pos[1] + "px";
-    div.onclick = () => { if(selectedPlayer){div.innerText=selectedPlayer;selectedPlayer=null;} };
+    div.style.left = pos[0]+"px";
+    div.style.top = pos[1]+"px";
+    div.onclick = ()=>{ if(selectedPlayer){div.innerText=selectedPlayer;selectedPlayer=null;} };
     makeDraggable(div);
     field.appendChild(div);
   });
@@ -226,8 +218,8 @@ function makeDraggable(el){
     let shiftX = e.clientX - el.getBoundingClientRect().left;
     let shiftY = e.clientY - el.getBoundingClientRect().top;
     function moveAt(pageX,pageY){
-      el.style.left = pageX - shiftX - el.parentElement.getBoundingClientRect().left+'px';
-      el.style.top = pageY - shiftY - el.parentElement.getBoundingClientRect().top+'px';
+      el.style.left = pageX-shiftX-el.parentElement.getBoundingClientRect().left+'px';
+      el.style.top = pageY-shiftY-el.parentElement.getBoundingClientRect().top+'px';
     }
     function onMouseMove(e){ moveAt(e.pageX,e.pageY);}
     document.addEventListener('mousemove',onMouseMove);
@@ -238,22 +230,15 @@ function makeDraggable(el){
   };
 }
 
-// Download PDF
-async function downloadPDF(){
+// PDF com tabela de cabeçalhos + campo + jogadores
+function downloadPDF(){
   const { jsPDF } = window.jspdf;
-  const field = document.getElementById("field");
-
-  // Captura o campo de futebol como imagem
-  const canvas = await html2canvas(field);
-  const imgData = canvas.toDataURL("image/png");
-
-  const pdf = new jsPDF("portrait"); // Muda para vertical
-  pdf.setFontSize(14);
-
-  // Cabeçalho estilo tabela vertical
+  const pdf = new jsPDF("portrait");
+  pdf.setFontSize(12);
   const startX = 10;
   let startY = 10;
-  const lineHeight = 10;
+  const cellWidth = 50;
+  const cellHeight = 8;
 
   const gameInfo = [
     ["Equipa", document.getElementById("teamName").value || "Equipa"],
@@ -262,19 +247,41 @@ async function downloadPDF(){
     ["Data", document.getElementById("matchDate").value || ""]
   ];
 
-  gameInfo.forEach(row => {
-    pdf.text(row[0], startX, startY);        // Cabeçalho vertical
-    pdf.text(":", startX + 40, startY);     // Separador
-    pdf.text(row[1], startX + 50, startY);  // Valor
-    startY += lineHeight;
+  // Desenhar tabela
+  gameInfo.forEach((row,i)=>{
+    pdf.rect(startX,startY+i*cellHeight,cellWidth,cellHeight); // Cabeçalho
+    pdf.rect(startX+cellWidth,startY+i*cellHeight,cellWidth*2,cellHeight); // Valor
+    pdf.text(row[0], startX+2, startY+i*cellHeight+6);
+    pdf.text(row[1], startX+cellWidth+2, startY+i*cellHeight+6);
   });
 
-  // Adiciona o campo de futebol como imagem abaixo da tabela
-  pdf.addImage(imgData,"PNG",10,startY+5,180,100);
+  // Campo de futebol
+  const fieldX = 10;
+  const fieldY = startY + gameInfo.length*cellHeight + 10;
+  const fieldW = 180;
+  const fieldH = 100;
+  pdf.setDrawColor(0);
+  pdf.setLineWidth(0.5);
+  pdf.rect(fieldX, fieldY, fieldW, fieldH);
+  pdf.line(fieldX+fieldW/2, fieldY, fieldX+fieldW/2, fieldY+fieldH);
+  pdf.circle(fieldX+fieldW/2, fieldY+fieldH/2, 10);
 
-  pdf.save("TactiBoard-Profissional.pdf");
+  // Jogadores
+  const players = document.querySelectorAll(".player");
+  players.forEach(p=>{
+    const rectX = fieldX + (parseFloat(p.style.left)/900)*fieldW;
+    const rectY = fieldY + (parseFloat(p.style.top)/500)*fieldH;
+    const rectW = 12;
+    const rectH = 6;
+    pdf.setFillColor(255,255,255);
+    pdf.rect(rectX, rectY, rectW, rectH, "F");
+    pdf.setTextColor(0,0,0);
+    pdf.setFontSize(6);
+    pdf.text(p.innerText||"", rectX+1, rectY+5);
+  });
+
+  pdf.save("TactiBoard-Pro.pdf");
 }
-
 
 generateFormation();
 </script>
