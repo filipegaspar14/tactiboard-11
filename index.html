@@ -1,160 +1,284 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt">
 <head>
 <meta charset="UTF-8">
 <title>TactiBoard 11 – Campo Verde 2D</title>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <style>
-body {margin:0;font-family:'Segoe UI',sans-serif;background:#fff;color:black;}
-header {padding:15px;background:#22c55e;text-align:center;font-size:24px;font-weight:bold;color:white;}
-.container {display:flex;gap:20px;padding:20px;}
-.sidebar {width:280px;background:#e0f2e9;padding:15px;border-radius:10px;}
-.sidebar input,.sidebar select {width:100%;margin-bottom:10px;padding:8px;border-radius:6px;border:none;}
-.sidebar button {width:100%;padding:10px;margin-top:5px;border-radius:8px;border:none;background:#16a34a;color:white;font-weight:bold;cursor:pointer;}
-.plantel {margin-top:15px;}
-.player-list {background:white;color:black;padding:6px;margin-bottom:5px;border-radius:6px;cursor:pointer;text-align:center;font-weight:bold;}
-.player-list[contenteditable="true"] {outline:1px solid #ccc;}
-.field-container {flex:1;text-align:center;}
-.field {width:900px;height:500px;background:#a0e4a0;margin:auto;position:relative;border:3px solid white;}
-.player {position:absolute;width:80px;height:40px;border-radius:8px;text-align:center;line-height:40px;font-weight:bold;cursor:move;background:white;color:black;}
+  body {margin:0; font-family:'Segoe UI',sans-serif; background:#f8f9fa; color:#111;}
+  header {padding:16px; background:#22c55e; text-align:center; font-size:26px; font-weight:bold; color:white;}
+  .container {display:flex; gap:24px; padding:20px; max-width:1400px; margin:auto;}
+  .sidebar {width:300px; background:#e0f2e9; padding:20px; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.08);}
+  .sidebar input, .sidebar select {width:100%; margin-bottom:12px; padding:10px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box;}
+  .sidebar button {width:100%; padding:12px; margin:6px 0; border:none; border-radius:8px; font-weight:bold; cursor:pointer;}
+  .sidebar button.primary   {background:#16a34a; color:white;}
+  .sidebar button.secondary {background:#6b7280; color:white;}
+  .sidebar button.danger    {background:#ef4444; color:white;}
+  .player-list {background:white; color:black; padding:8px; margin:6px 0; border-radius:6px; text-align:center; font-weight:bold; cursor:pointer; user-select:none; border:1px solid #ddd;}
+  .player-list.editing {outline:2px solid #16a34a; background:#f0fdf4;}
+  .field-container {flex:1; text-align:center;}
+  .field {width:920px; height:520px; background:#86efac; margin:auto; position:relative; border:4px solid #14532d; border-radius:8px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.15);}
+  .player {position:absolute; width:72px; height:44px; border-radius:10px; text-align:center; line-height:44px; font-size:13px; font-weight:bold; cursor:move; background:rgba(255,255,255,0.92); color:#111; border:1px solid #666; box-shadow:0 2px 6px rgba(0,0,0,0.2); user-select:none;}
+  .player::before {content:attr(data-pos); position:absolute; top:-18px; left:50%; transform:translateX(-50%); font-size:11px; color:#333; font-weight:normal;}
 </style>
 </head>
-
 <body>
 
 <header>⚽ TactiBoard 11 – Campo Verde 2D</header>
 
 <div class="container">
+  <div class="sidebar">
+    <input type="text" id="teamName" placeholder="Nome da Equipa">
+    <input type="text" id="opponent" placeholder="Adversário">
+    <input type="date" id="matchDate">
+    <input type="text" id="competition" placeholder="Competição">
 
-<div class="sidebar">
-<input type="text" id="teamName" placeholder="Nome da Equipa">
-<input type="text" id="opponent" placeholder="Adversário">
-<input type="date" id="matchDate">
-<input type="text" id="competition" placeholder="Competição">
+    <select id="formation">
+      <option value="352Atual" selected>3-5-2 ATUAL (Preset)</option>
+      <option value="433">4-3-3</option>
+      <option value="442">4-4-2</option>
+      <option value="4231">4-2-3-1</option>
+      <option value="532">5-3-2</option>
+    </select>
 
-<select id="formation">
-<option value="352Atual" selected>3-5-2 ATUAL (Preset)</option>
-<option value="433">4-3-3</option>
-<option value="442">4-4-2</option>
-<option value="352">3-5-2</option>
-<option value="532">5-3-2</option>
-</select>
+    <button class="primary" onclick="generateFormation()">Aplicar Formação</button>
+    <button class="secondary" onclick="clearPositions()">Limpar posições</button>
+    <button class="danger" onclick="resetAll()">Reset total</button>
+    <button class="primary" onclick="downloadPDF()">Download PDF</button>
 
-<button onclick="generateFormation()">Aplicar Formação</button>
-<button onclick="clearField()">Limpar Campo</button>
-<button onclick="downloadPDF()">Download PDF</button>
+    <div class="plantel" style="margin-top:24px;">
+      <h3>Plantel (clica para editar / arrastar)</h3>
+      <div id="playerList"></div>
+      <input type="text" id="newPlayer" placeholder="Adicionar jogador extra">
+      <button class="primary" onclick="addPlayer()">Adicionar</button>
+      <p style="font-size:12px; color:#555; margin-top:8px;">Clique no nome → edita • Arrasta para o campo</p>
+    </div>
+  </div>
 
-<div class="plantel">
-<h3>Plantel (18 jogadores)</h3>
-<div id="playerList"></div>
-<input type="text" id="newPlayer" placeholder="Adicionar jogador">
-<button onclick="addPlayer()">Adicionar</button>
-<p style="font-size:12px;color:#555;">Clique no nome do jogador para editar</p>
-</div>
-</div>
-
-<div class="field-container">
-<div class="field" id="field"></div>
-</div>
-
+  <div class="field-container">
+    <div class="field" id="field"></div>
+  </div>
 </div>
 
 <script>
-let selectedPlayer = null;
+const field = document.getElementById("field");
+let draggedPlayer = null;
+let offsetX, offsetY;
 
-// Inicializa 18 espaços no plantel
-function initPlantel(){
+// =============================================
+//  Desenhar linhas do campo (círculo central, áreas)
+// =============================================
+function drawFieldLines() {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", "100%");
+  svg.setAttribute("height", "100%");
+  svg.style.position = "absolute";
+  svg.style.top = "0";
+  svg.style.left = "0";
+  svg.style.pointerEvents = "none";
+
+  const w = 920, h = 520;
+  const lines = [
+    // Linhas exteriores já estão na borda
+    // Círculo central
+    `<circle cx="${w/2}" cy="${h/2}" r="45" fill="none" stroke="white" stroke-width="3" opacity="0.7"/>`,
+    // Área penal (aproximada)
+    `<rect x="${w*0.08}" y="${h*0.21}" width="${w*0.16}" height="${h*0.58}" fill="none" stroke="white" stroke-width="3" opacity="0.6"/>`,
+    `<rect x="${w*0.92 - w*0.16}" y="${h*0.21}" width="${w*0.16}" height="${h*0.58}" fill="none" stroke="white" stroke-width="3" opacity="0.6"/>`,
+    // Área pequena
+    `<rect x="${w*0.12}" y="${h*0.37}" width="${w*0.08}" height="${h*0.26}" fill="none" stroke="white" stroke-width="2" opacity="0.6"/>`,
+    `<rect x="${w*0.88 - w*0.08}" y="${h*0.37}" width="${w*0.08}" height="${h*0.26}" fill="none" stroke="white" stroke-width="2" opacity="0.6"/>`,
+  ];
+
+  svg.innerHTML = lines.join("");
+  field.appendChild(svg);
+}
+
+// =============================================
+// Inicializar plantel com 18 slots editáveis
+// =============================================
+function initPlantel() {
   const list = document.getElementById("playerList");
-  list.innerHTML="";
-  for(let i=0;i<18;i++){
-    const div=document.createElement("div");
-    div.className="player-list";
-    div.contentEditable="true";
-    div.innerText="";
-    div.onclick=()=>selectedPlayer=null;
+  list.innerHTML = "";
+  for (let i = 1; i <= 18; i++) {
+    const div = document.createElement("div");
+    div.className = "player-list";
+    div.contentEditable = true;
+    div.innerText = "";
+    div.dataset.index = i;
+    div.ondblclick = () => div.focus();
     list.appendChild(div);
   }
 }
 
 // Adicionar jogador extra
-function addPlayer(){
-  const name = document.getElementById("newPlayer").value;
-  if(!name) return;
-  const div=document.createElement("div");
-  div.className="player-list";
-  div.innerText=name;
-  div.contentEditable="true";
-  div.onclick=()=>selectedPlayer=name;
+function addPlayer() {
+  const name = document.getElementById("newPlayer").value.trim();
+  if (!name) return;
+  const div = document.createElement("div");
+  div.className = "player-list";
+  div.contentEditable = true;
+  div.innerText = name;
   document.getElementById("playerList").appendChild(div);
-  document.getElementById("newPlayer").value="";
+  document.getElementById("newPlayer").value = "";
 }
 
-// Limpar campo
-function clearField(){ generateFormation(); }
+// =============================================
+// Formações
+// =============================================
+const formations = {
+  "352Atual": [
+    [0.06, 0.50],   // 1  GR
+    [0.22, 0.32], [0.22, 0.50], [0.22, 0.68], // 2-4  Centrais
+    [0.42, 0.12], [0.42, 0.32], [0.42, 0.50], [0.42, 0.68], [0.42, 0.88], // 5-9  Médios
+    [0.70, 0.35], [0.70, 0.65]  // 10-11  Avançados
+  ],
+  "433": [
+    [0.06,0.5],
+    [0.20,0.25],[0.20,0.50],[0.20,0.75],[0.20,0.90],
+    [0.40,0.25],[0.40,0.50],[0.40,0.75],
+    [0.68,0.20],[0.68,0.50],[0.68,0.80]
+  ],
+  "442": [
+    [0.06,0.5],
+    [0.20,0.25],[0.20,0.50],[0.20,0.75],[0.20,0.90],
+    [0.42,0.20],[0.42,0.45],[0.42,0.55],[0.42,0.80],
+    [0.70,0.35],[0.70,0.65]
+  ]
+  // Podes adicionar mais...
+};
 
-// Drag & Drop
-function makeDraggable(el){
-  el.onmousedown=function(e){
-    e.preventDefault();
-    let shiftX=e.clientX-el.getBoundingClientRect().left;
-    let shiftY=e.clientY-el.getBoundingClientRect().top;
-    function moveAt(pageX,pageY){ el.style.left=pageX-shiftX-el.parentElement.getBoundingClientRect().left+'px'; el.style.top=pageY-shiftY-el.parentElement.getBoundingClientRect().top+'px';}
-    function onMouseMove(e){ moveAt(e.pageX,e.pageY);}
-    document.addEventListener('mousemove',onMouseMove);
-    document.onmouseup=function(){document.removeEventListener('mousemove',onMouseMove);document.onmouseup=null;}
-  };
-}
+function generateFormation() {
+  field.innerHTML = "";
+  drawFieldLines();
 
-// Campo principal 2D com retângulos para jogadores
-function generateFormation(){
-  const field=document.getElementById("field");
-  field.innerHTML='';
+  const sel = document.getElementById("formation").value;
+  const posArray = formations[sel] || formations["352Atual"];
 
-  const w=900,h=500;
-
-  // 3-5-2 ATUAL como preset (11 jogadores)
-  const positions=[
-    [0.05*w,0.5*h],           // GR
-    [0.2*w,0.35*h],[0.2*w,0.5*h],[0.2*w,0.65*h], // 3 Centrais
-    [0.4*w,0.15*h],[0.4*w,0.35*h],[0.4*w,0.5*h],[0.4*w,0.65*h],[0.4*w,0.85*h], // 5 Médios (incluindo 10 ofensivo)
-    [0.65*w,0.35*h],[0.65*w,0.65*h] // 2 Avançados
-  ];
-
-  positions.forEach(pos=>{
-    const div=document.createElement("div");
-    div.className="player";
-    div.contentEditable="true";
-    div.style.left=pos[0]+"px"; div.style.top=pos[1]+"px";
-    div.innerText="";
+  posArray.forEach((p, i) => {
+    const div = document.createElement("div");
+    div.className = "player";
+    div.contentEditable = true;
+    div.dataset.pos = i + 1;
+    div.innerText = "";
+    div.style.left = (p[0] * 920) + "px";
+    div.style.top  = (p[1] * 520) + "px";
     makeDraggable(div);
     field.appendChild(div);
   });
 }
 
-// PDF fiel
-async function downloadPDF(){
-  const { jsPDF }=window.jspdf;
-  const field=document.getElementById("field");
-  const canvas=await html2canvas(field,{scale:3,useCORS:true,allowTaint:true,backgroundColor:null});
-  const imgData=canvas.toDataURL("image/png");
+// =============================================
+// Drag & Drop melhorado + snap
+// =============================================
+function makeDraggable(el) {
+  function startDrag(e) {
+    e.preventDefault();
+    draggedPlayer = el;
+    const rect = el.getBoundingClientRect();
+    const fieldRect = field.getBoundingClientRect();
+    offsetX = (e.clientX || e.touches[0].clientX) - rect.left;
+    offsetY = (e.clientY || e.touches[0].clientY) - rect.top;
+    el.style.zIndex = 100;
+  }
 
-  const pdf=new jsPDF("landscape","mm","a4");
-  const startX=10,startY=10,cellWidth=50,cellHeight=8;
-  const gameInfo=[["Equipa",document.getElementById("teamName").value||"Equipa"],["Adversário",document.getElementById("opponent").value||"Adversário"],["Competição",document.getElementById("competition").value||""],["Data",document.getElementById("matchDate").value||""],["Formação",document.getElementById("formation").value||""]];
-  gameInfo.forEach((row,i)=>{pdf.rect(startX,startY+i*cellHeight,cellWidth,cellHeight);pdf.rect(startX+cellWidth,startY+i*cellHeight,cellWidth*2,cellHeight);pdf.text(row[0],startX+2,startY+i*cellHeight+6);pdf.text(row[1],startX+cellWidth+2,startY+i*cellHeight+6);});
-  const imgWidth=270;
-  const imgHeight=(canvas.height/canvas.width)*imgWidth;
-  pdf.addImage(imgData,"PNG",10,startY+gameInfo.length*cellHeight+5,imgWidth,imgHeight);
-  pdf.save("TactiBoard-2D-Verde.pdf");
+  function moveDrag(e) {
+    if (!draggedPlayer) return;
+    e.preventDefault();
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    let newLeft = clientX - offsetX - field.getBoundingClientRect().left;
+    let newTop  = clientY - offsetY - field.getBoundingClientRect().top;
+
+    // Snap simples a cada 20px
+    newLeft = Math.round(newLeft / 20) * 20;
+    newTop  = Math.round(newTop  / 20) * 20;
+
+    // Limites
+    newLeft = Math.max(0, Math.min(920 - 72, newLeft));
+    newTop  = Math.max(0, Math.min(520 - 44, newTop));
+
+    draggedPlayer.style.left = newLeft + "px";
+    draggedPlayer.style.top  = newTop  + "px";
+  }
+
+  function endDrag() {
+    draggedPlayer = null;
+  }
+
+  el.addEventListener("mousedown", startDrag);
+  el.addEventListener("touchstart", startDrag, {passive:false});
+
+  document.addEventListener("mousemove", moveDrag);
+  document.addEventListener("touchmove", moveDrag, {passive:false});
+  document.addEventListener("mouseup", endDrag);
+  document.addEventListener("touchend", endDrag);
 }
 
-// Inicializa plantel e formação preset
+// =============================================
+// Limpar / Reset
+// =============================================
+function clearPositions() {
+  const players = field.querySelectorAll(".player");
+  players.forEach(p => {
+    p.innerText = "";
+  });
+}
+
+function resetAll() {
+  if (!confirm("Reset total? Perdes tudo.")) return;
+  document.getElementById("teamName").value = "";
+  document.getElementById("opponent").value = "";
+  document.getElementById("matchDate").value = "";
+  document.getElementById("competition").value = "";
+  clearPositions();
+  generateFormation();
+}
+
+// =============================================
+// PDF com legenda
+// =============================================
+async function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const canvas = await html2canvas(field, {scale:3, useCORS:true, backgroundColor:null});
+  const imgData = canvas.toDataURL("image/png");
+
+  const pdf = new jsPDF({orientation:"landscape", unit:"mm", format:"a4"});
+  const startX = 12, startY = 12, cellW = 55, cellH = 9;
+
+  const info = [
+    ["Equipa",     document.getElementById("teamName").value     || "—"],
+    ["Adversário", document.getElementById("opponent").value     || "—"],
+    ["Competição", document.getElementById("competition").value  || "—"],
+    ["Data",       document.getElementById("matchDate").value    || "—"],
+    ["Formação",   document.getElementById("formation").value    || "—"]
+  ];
+
+  info.forEach((row, i) => {
+    pdf.setFillColor(230, 245, 235);
+    pdf.rect(startX, startY + i*cellH, cellW*3, cellH, "F");
+    pdf.setDrawColor(100);
+    pdf.rect(startX, startY + i*cellH, cellW, cellH);
+    pdf.rect(startX + cellW, startY + i*cellH, cellW*2, cellH);
+    pdf.setFontSize(11);
+    pdf.text(row[0], startX + 3, startY + i*cellH + 6.5);
+    pdf.text(row[1].substring(0,38), startX + cellW + 3, startY + i*cellH + 6.5);
+  });
+
+  const imgW = 270;
+  const imgH = (canvas.height / canvas.width) * imgW;
+  pdf.addImage(imgData, "PNG", 10, startY + info.length*cellH + 8, imgW, imgH);
+
+  pdf.save("TactiBoard_CampoVerde.pdf");
+}
+
+// =============================================
+// Início
+// =============================================
 initPlantel();
 generateFormation();
+drawFieldLines();
 </script>
-
 </body>
 </html>
