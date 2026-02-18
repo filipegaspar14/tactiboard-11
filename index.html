@@ -2,39 +2,78 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>TactiBoard 11</title>
+<title>TactiBoard 11 Pro</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 body {
-  font-family: Arial, sans-serif;
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
   background: #0f172a;
   color: white;
+}
+
+header {
+  padding: 15px;
+  background: #111827;
   text-align: center;
+  font-size: 22px;
+  font-weight: bold;
 }
 
-h1 {
-  margin-top: 20px;
+.container {
+  display: flex;
+  padding: 20px;
+  gap: 20px;
 }
 
-.controls {
-  margin: 20px;
+.sidebar {
+  width: 250px;
+  background: #1f2937;
+  padding: 15px;
+  border-radius: 10px;
 }
 
-select, button {
+.sidebar input, .sidebar select {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+}
+
+.sidebar button {
+  width: 100%;
   padding: 10px;
-  margin: 5px;
+  margin-top: 5px;
   border-radius: 8px;
   border: none;
+  background: #22c55e;
+  color: white;
   font-weight: bold;
   cursor: pointer;
 }
 
-button {
-  background: #22c55e;
-  color: white;
+.plantel {
+  margin-top: 15px;
+}
+
+.player-list {
+  background: white;
+  color: black;
+  padding: 6px;
+  margin-bottom: 5px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  font-weight: bold;
+}
+
+.field-container {
+  flex: 1;
+  text-align: center;
 }
 
 .field {
@@ -45,10 +84,9 @@ button {
   border-radius: 15px;
   position: relative;
   border: 5px solid white;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }
 
-.line {
+.line-mid {
   position: absolute;
   width: 2px;
   height: 100%;
@@ -56,7 +94,7 @@ button {
   left: 50%;
 }
 
-.circle {
+.circle-mid {
   position: absolute;
   width: 120px;
   height: 120px;
@@ -78,6 +116,7 @@ button {
   line-height: 45px;
   font-size: 13px;
   font-weight: bold;
+  cursor: move;
   box-shadow: 0 3px 6px rgba(0,0,0,0.4);
 }
 </style>
@@ -85,66 +124,82 @@ button {
 
 <body>
 
-<h1>⚽ TactiBoard 11</h1>
+<header>⚽ TactiBoard 11 PRO</header>
 
-<div class="controls">
-  <select id="formation">
-    <option value="433">4-3-3</option>
-    <option value="442">4-4-2</option>
-    <option value="352">3-5-2</option>
-    <option value="532">5-3-2</option>
-  </select>
-  <button onclick="generateFormation()">Aplicar Formação</button>
-  <button onclick="downloadPDF()">Download PDF</button>
+<div class="container">
+
+<div class="sidebar">
+<input type="text" id="teamName" placeholder="Nome da Equipa">
+<input type="text" id="opponent" placeholder="Adversário">
+<input type="date" id="matchDate">
+<input type="text" id="competition" placeholder="Competição">
+
+<select id="formation">
+<option value="433">4-3-3</option>
+<option value="442">4-4-2</option>
+<option value="352">3-5-2</option>
+<option value="532">5-3-2</option>
+</select>
+
+<button onclick="generateFormation()">Aplicar Formação</button>
+<button onclick="clearField()">Limpar Campo</button>
+<button onclick="downloadPDF()">Download PDF</button>
+
+<div class="plantel">
+<h3>Plantel</h3>
+<div id="playerList"></div>
+<input type="text" id="newPlayer" placeholder="Adicionar jogador">
+<button onclick="addPlayer()">Adicionar</button>
+</div>
 </div>
 
+<div class="field-container">
 <div class="field" id="field">
-  <div class="line"></div>
-  <div class="circle"></div>
+<div class="line-mid"></div>
+<div class="circle-mid"></div>
+</div>
+</div>
+
 </div>
 
 <script>
+let selectedPlayer = null;
+
+function addPlayer() {
+  const name = document.getElementById("newPlayer").value;
+  if (!name) return;
+
+  const div = document.createElement("div");
+  div.className = "player-list";
+  div.innerText = name;
+  div.onclick = () => selectedPlayer = name;
+
+  document.getElementById("playerList").appendChild(div);
+  document.getElementById("newPlayer").value = "";
+}
+
+function clearField() {
+  generateFormation();
+}
+
 function generateFormation() {
   const field = document.getElementById("field");
-  field.innerHTML = '<div class="line"></div><div class="circle"></div>';
+  field.innerHTML = '<div class="line-mid"></div><div class="circle-mid"></div>';
 
   const formation = document.getElementById("formation").value;
   let positions = [];
 
   if (formation === "433") {
-    positions = [
-      [50,250],
-      [200,80],[200,200],[200,320],[200,440],
-      [400,120],[400,250],[400,380],
-      [650,80],[650,250],[650,420]
-    ];
+    positions = [[50,250],[200,80],[200,200],[200,320],[200,440],[400,120],[400,250],[400,380],[650,80],[650,250],[650,420]];
   }
-
   if (formation === "442") {
-    positions = [
-      [50,250],
-      [200,80],[200,200],[200,320],[200,440],
-      [400,80],[400,200],[400,320],[400,440],
-      [650,170],[650,330]
-    ];
+    positions = [[50,250],[200,80],[200,200],[200,320],[200,440],[400,80],[400,200],[400,320],[400,440],[650,170],[650,330]];
   }
-
   if (formation === "352") {
-    positions = [
-      [50,250],
-      [200,150],[200,250],[200,350],
-      [400,60],[400,160],[400,250],[400,340],[400,440],
-      [650,180],[650,320]
-    ];
+    positions = [[50,250],[200,150],[200,250],[200,350],[400,60],[400,160],[400,250],[400,340],[400,440],[650,180],[650,320]];
   }
-
   if (formation === "532") {
-    positions = [
-      [50,250],
-      [200,60],[200,150],[200,250],[200,350],[200,440],
-      [400,150],[400,250],[400,350],
-      [650,180],[650,320]
-    ];
+    positions = [[50,250],[200,60],[200,150],[200,250],[200,350],[200,440],[400,150],[400,250],[400,350],[650,180],[650,320]];
   }
 
   positions.forEach(pos => {
@@ -153,9 +208,41 @@ function generateFormation() {
     div.contentEditable = true;
     div.style.left = pos[0] + "px";
     div.style.top = pos[1] + "px";
-    div.innerText = "";
+
+    div.onclick = () => {
+      if (selectedPlayer) {
+        div.innerText = selectedPlayer;
+        selectedPlayer = null;
+      }
+    };
+
+    makeDraggable(div);
     field.appendChild(div);
   });
+}
+
+function makeDraggable(el) {
+  el.onmousedown = function(e) {
+    e.preventDefault();
+    let shiftX = e.clientX - el.getBoundingClientRect().left;
+    let shiftY = e.clientY - el.getBoundingClientRect().top;
+
+    function moveAt(pageX, pageY) {
+      el.style.left = pageX - shiftX - el.parentElement.getBoundingClientRect().left + 'px';
+      el.style.top = pageY - shiftY - el.parentElement.getBoundingClientRect().top + 'px';
+    }
+
+    function onMouseMove(e) {
+      moveAt(e.pageX, e.pageY);
+    }
+
+    document.addEventListener('mousemove', onMouseMove);
+
+    document.onmouseup = function() {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.onmouseup = null;
+    };
+  };
 }
 
 async function downloadPDF() {
@@ -166,8 +253,13 @@ async function downloadPDF() {
   const imgData = canvas.toDataURL("image/png");
 
   const pdf = new jsPDF("landscape");
-  pdf.addImage(imgData, "PNG", 10, 10, 270, 150);
-  pdf.save("tactiboard-formacao.pdf");
+  pdf.setFontSize(14);
+  pdf.text(document.getElementById("teamName").value || "Equipa", 10, 10);
+  pdf.text("vs " + (document.getElementById("opponent").value || "Adversário"), 10, 20);
+  pdf.text(document.getElementById("competition").value || "", 10, 30);
+
+  pdf.addImage(imgData, "PNG", 10, 40, 270, 150);
+  pdf.save("TactiBoard-Pro.pdf");
 }
 
 generateFormation();
