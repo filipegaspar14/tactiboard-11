@@ -178,7 +178,7 @@ let offsetX, offsetY;
 let playerNames = Array(18).fill("");
 
 // =============================================
-// Campo com linhas corrigidas e realistas
+// Campo FIFA correto – só linhas/base, sem texto
 // =============================================
 function drawFieldLines() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -189,65 +189,65 @@ function drawFieldLines() {
   svg.style.left = "0";
   svg.style.pointerEvents = "none";
 
-  const w = 920;
-  const h = 520;
+  const w = 920;   // largura canvas
+  const h = 520;   // altura canvas
 
+  // Escalas separadas (FIFA: 105 m comprimento × 68 m largura)
   const scaleX = w / 105;
   const scaleY = h / 68;
-  const scale  = (v) => v * (scaleX + scaleY) / 2;
 
   const lines = [];
 
-  // Contorno
+  // Contorno exterior
   lines.push(`<rect x="0" y="0" width="${w}" height="${h}" fill="none" stroke="#ffffff" stroke-width="4" opacity="0.85"/>`);
 
-  // Meio-campo
+  // Linha de meio-campo + círculo central
   lines.push(`<line x1="${w/2}" y1="0" x2="${w/2}" y2="${h}" stroke="#ffffff" stroke-width="3" opacity="0.75"/>`);
-
-  // Círculo central
-  lines.push(`<circle cx="${w/2}" cy="${h/2}" r="${scale(9.15)}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.75"/>`);
+  lines.push(`<circle cx="${w/2}" cy="${h/2}" r="${9.15 * scaleX}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.75"/>`);
   lines.push(`<circle cx="${w/2}" cy="${h/2}" r="3" fill="#ffffff"/>`);
 
-  // Áreas penais grandes (16.5 × 40.32 m)
-  const paW = scale(16.5);
-  const paH = scale(40.32);
-  lines.push(`<rect x="0" y="${(h-paH)/2}" width="${paW}" height="${paH}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
-  lines.push(`<rect x="${w-paW}" y="${(h-paH)/2}" width="${paW}" height="${paH}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
+  // Áreas penais grandes (16.5 m profundidade × 40.32 m largura)
+  const paDepth = 16.5 * scaleX;
+  const paWidth = 40.32 * scaleY;
+  lines.push(`<rect x="0" y="${(h - paWidth)/2}" width="${paDepth}" height="${paWidth}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
+  lines.push(`<rect x="${w - paDepth}" y="${(h - paWidth)/2}" width="${paDepth}" height="${paWidth}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
 
-  // Áreas pequenas (5.5 × 18.32 m)
-  const gaW = scale(5.5);
-  const gaH = scale(18.32);
-  lines.push(`<rect x="0" y="${(h-gaH)/2}" width="${gaW}" height="${gaH}" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.8"/>`);
-  lines.push(`<rect x="${w-gaW}" y="${(h-gaH)/2}" width="${gaW}" height="${gaH}" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.8"/>`);
+  // Áreas pequenas / baliza (5.5 m profundidade × 18.32 m largura)
+  const gaDepth = 5.5 * scaleX;
+  const gaWidth = 18.32 * scaleY;
+  lines.push(`<rect x="0" y="${(h - gaWidth)/2}" width="${gaDepth}" height="${gaWidth}" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.8"/>`);
+  lines.push(`<rect x="${w - gaDepth}" y="${(h - gaWidth)/2}" width="${gaDepth}" height="${gaWidth}" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.8"/>`);
 
-  // Pontos de penálti
-  const penX = scale(11);
-  lines.push(`<circle cx="${penX}" cy="${h/2}" r="2.5" fill="#ffffff"/>`);
-  lines.push(`<circle cx="${w-penX}" cy="${h/2}" r="2.5" fill="#ffffff"/>`);
+  // Pontos de penálti (11 m da linha de fundo)
+  const penSpot = 11 * scaleX;
+  lines.push(`<circle cx="${penSpot}" cy="${h/2}" r="2.5" fill="#ffffff"/>`);
+  lines.push(`<circle cx="${w - penSpot}" cy="${h/2}" r="2.5" fill="#ffffff"/>`);
 
-  // Semicírculos da área penal – CORRIGIDO
-  const arcR = scale(9.15);
-  // Esquerda (abre para direita)
-  lines.push(`<path d="M ${penX} ${h/2} A ${arcR} ${arcR} 0 0 1 ${penX + scale(18.3)} ${h/2 - arcR}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
-  lines.push(`<path d="M ${penX} ${h/2} A ${arcR} ${arcR} 0 0 0 ${penX + scale(18.3)} ${h/2 + arcR}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
-  // Direita (abre para esquerda)
-  lines.push(`<path d="M ${w-penX} ${h/2} A ${arcR} ${arcR} 0 0 0 ${w-penX - scale(18.3)} ${h/2 - arcR}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
-  lines.push(`<path d="M ${w-penX} ${h/2} A ${arcR} ${arcR} 0 0 1 ${w-penX - scale(18.3)} ${h/2 + arcR}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
+  // Arcos da área penal (raio 9.15 m a partir do ponto de penálti) – abrem para FORA
+  const arcRadius = 9.15 * scaleX;
+  const arcWidthOffset = 18.3 * scaleY;  // ~ largura do arco (diâmetro ~18.3 m)
 
-  // Bandeirinhas de canto (raio ~1m)
-  const cr = scale(1);
-  lines.push(`<path d="M 0 0 A ${cr} ${cr} 0 0 1 ${cr*2} ${cr*2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.7"/>`);
-  lines.push(`<path d="M ${w} 0 A ${cr} ${cr} 0 0 0 ${w - cr*2} ${cr*2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.7"/>`);
-  lines.push(`<path d="M 0 ${h} A ${cr} ${cr} 0 0 0 ${cr*2} ${h - cr*2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.7"/>`);
-  lines.push(`<path d="M ${w} ${h} A ${cr} ${cr} 0 0 1 ${w - cr*2} ${h - cr*2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.7"/>`);
+  // Lado esquerdo – arco abre para a DIREITA (fora da área)
+  lines.push(`<path d="M ${penSpot} ${h/2} A ${arcRadius} ${arcRadius} 0 0 1 ${penSpot + arcRadius*2} ${h/2 - arcWidthOffset/2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
+  lines.push(`<path d="M ${penSpot} ${h/2} A ${arcRadius} ${arcRadius} 0 0 0 ${penSpot + arcRadius*2} ${h/2 + arcWidthOffset/2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
+
+  // Lado direito – arco abre para a ESQUERDA (fora da área)
+  lines.push(`<path d="M ${w - penSpot} ${h/2} A ${arcRadius} ${arcRadius} 0 0 0 ${w - penSpot - arcRadius*2} ${h/2 - arcWidthOffset/2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
+  lines.push(`<path d="M ${w - penSpot} ${h/2} A ${arcRadius} ${arcRadius} 0 0 1 ${w - penSpot - arcRadius*2} ${h/2 + arcWidthOffset/2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
+
+  // Arcos de canto (raio 1 m)
+  const cornerR = 1 * scaleX;
+  lines.push(`<path d="M 0 0 A ${cornerR} ${cornerR} 0 0 1 ${cornerR*2} ${cornerR*2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.7"/>`);
+  lines.push(`<path d="M ${w} 0 A ${cornerR} ${cornerR} 0 0 0 ${w - cornerR*2} ${cornerR*2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.7"/>`);
+  lines.push(`<path d="M 0 ${h} A ${cornerR} ${cornerR} 0 0 0 ${cornerR*2} ${h - cornerR*2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.7"/>`);
+  lines.push(`<path d="M ${w} ${h} A ${cornerR} ${cornerR} 0 0 1 ${w - cornerR*2} ${h - cornerR*2}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.7"/>`);
 
   svg.innerHTML = lines.join("\n");
   field.appendChild(svg);
 }
 
-// =============================================
-// Plantel
-// =============================================
+// (o resto do código continua igual ao anterior – plantel, drag, PDF, etc.)
+
 function initPlantel() {
   const list = document.getElementById("playerList");
   list.innerHTML = "";
@@ -311,9 +311,6 @@ function addExtraPlayer() {
   document.getElementById("newPlayer").value = "";
 }
 
-// =============================================
-// Formações
-// =============================================
 const formations = {
   "352Atual": [
     [0.06, 0.50], [0.22, 0.32], [0.22, 0.50], [0.22, 0.68],
@@ -334,7 +331,7 @@ function generateFormation() {
   const pos = formations[key] || formations["352Atual"];
 
   pos.forEach((p, i) => {
-    if (i >= 11) return; // só 11 jogadores em campo
+    if (i >= 11) return;
 
     const div = document.createElement("div");
     div.className = "player";
@@ -342,8 +339,8 @@ function generateFormation() {
     div.dataset.pos = (i + 1).toString();
     div.dataset.plantelIndex = i.toString();
     div.innerText = playerNames[i] || "";
-    div.style.left = (p[0] * 920) + "px";
-    div.style.top  = (p[1] * 520) + "px";
+    div.style.left = (p[0] * w) + "px";
+    div.style.top  = (p[1] * h) + "px";
 
     makeDraggable(div);
     field.appendChild(div);
@@ -359,9 +356,6 @@ function syncFieldNames() {
   });
 }
 
-// =============================================
-// Drag & Drop
-// =============================================
 field.addEventListener("dragover", e => e.preventDefault());
 
 field.addEventListener("drop", e => {
@@ -388,7 +382,6 @@ field.addEventListener("drop", e => {
   left = Math.max(0, Math.min(920-76, Math.round(left/20)*20));
   top  = Math.max(0, Math.min(520-46, Math.round(top/20)*20));
 
-  // Verificar se já existe jogador associado a este índice
   let existing = null;
   if (plantelIdx !== null) {
     existing = field.querySelector(`.player[data-plantel-index="${plantelIdx}"]`);
@@ -401,7 +394,6 @@ field.addEventListener("drop", e => {
     return;
   }
 
-  // Criar novo
   const div = document.createElement("div");
   div.className = "player";
   div.contentEditable = true;
@@ -456,9 +448,6 @@ function makeDraggable(el) {
   document.addEventListener("touchend", end);
 }
 
-// =============================================
-// Limpar / Reset
-// =============================================
 function clearPositions() {
   field.innerHTML = "";
   drawFieldLines();
@@ -475,9 +464,6 @@ function resetAll() {
   clearPositions();
 }
 
-// =============================================
-// PDF
-// =============================================
 async function downloadPDF() {
   const { jsPDF } = window.jspdf;
   const canvas = await html2canvas(field, {scale: 3, backgroundColor: null});
@@ -506,9 +492,7 @@ async function downloadPDF() {
   pdf.save("TactiBoard_CampoVerde.pdf");
 }
 
-// =============================================
 // Inicialização
-// =============================================
 initPlantel();
 drawFieldLines();
 </script>
