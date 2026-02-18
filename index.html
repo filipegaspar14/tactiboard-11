@@ -9,18 +9,22 @@
   body {margin:0; font-family:'Segoe UI',sans-serif; background:#f8f9fa; color:#111;}
   header {padding:16px; background:#22c55e; text-align:center; font-size:26px; font-weight:bold; color:white;}
   .container {display:flex; gap:24px; padding:20px; max-width:1400px; margin:auto;}
-  .sidebar {width:300px; background:#e0f2e9; padding:20px; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.08);}
+  .sidebar {width:340px; background:#e0f2e9; padding:20px; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.08);}
   .sidebar input, .sidebar select {width:100%; margin-bottom:12px; padding:10px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box;}
   .sidebar button {width:100%; padding:12px; margin:6px 0; border:none; border-radius:8px; font-weight:bold; cursor:pointer;}
   .sidebar button.primary   {background:#16a34a; color:white;}
   .sidebar button.secondary {background:#6b7280; color:white;}
   .sidebar button.danger    {background:#ef4444; color:white;}
-  .player-list {background:white; color:black; padding:8px; margin:6px 0; border-radius:6px; text-align:center; font-weight:bold; cursor:pointer; user-select:none; border:1px solid #ddd;}
-  .player-list.editing {outline:2px solid #16a34a; background:#f0fdf4;}
+  
+  .player-slot {display:flex; align-items:center; background:white; border:1px solid #ddd; border-radius:6px; margin:6px 0; padding:6px; font-weight:bold;}
+  .player-number {width:36px; text-align:center; background:#dcfce7; border-radius:4px; padding:4px 0; margin-right:8px; color:#166534; font-size:15px;}
+  .player-name {flex:1; padding:6px; border-radius:4px; min-height:24px;}
+  .player-name[contenteditable="true"]:focus {outline:2px solid #16a34a; background:#f0fdf4;}
+  
   .field-container {flex:1; text-align:center;}
   .field {width:920px; height:520px; background:#86efac; margin:auto; position:relative; border:4px solid #14532d; border-radius:8px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.15);}
-  .player {position:absolute; width:72px; height:44px; border-radius:10px; text-align:center; line-height:44px; font-size:13px; font-weight:bold; cursor:move; background:rgba(255,255,255,0.92); color:#111; border:1px solid #666; box-shadow:0 2px 6px rgba(0,0,0,0.2); user-select:none;}
-  .player::before {content:attr(data-pos); position:absolute; top:-18px; left:50%; transform:translateX(-50%); font-size:11px; color:#333; font-weight:normal;}
+  .player {position:absolute; width:76px; height:46px; border-radius:10px; text-align:center; line-height:46px; font-size:13px; font-weight:bold; cursor:move; background:rgba(255,255,255,0.94); color:#111; border:1px solid #555; box-shadow:0 2px 8px rgba(0,0,0,0.25); user-select:none;}
+  .player::before {content:attr(data-pos); position:absolute; top:-20px; left:50%; transform:translateX(-50%); font-size:11px; color:#222; font-weight:normal;}
 </style>
 </head>
 <body>
@@ -47,12 +51,12 @@
     <button class="danger" onclick="resetAll()">Reset total</button>
     <button class="primary" onclick="downloadPDF()">Download PDF</button>
 
-    <div class="plantel" style="margin-top:24px;">
-      <h3>Plantel (clica para editar / arrastar)</h3>
+    <div style="margin-top:24px;">
+      <h3>Plantel (1–18)</h3>
       <div id="playerList"></div>
-      <input type="text" id="newPlayer" placeholder="Adicionar jogador extra">
-      <button class="primary" onclick="addPlayer()">Adicionar</button>
-      <p style="font-size:12px; color:#555; margin-top:8px;">Clique no nome → edita • Arrasta para o campo</p>
+      <input type="text" id="newPlayer" placeholder="Adicionar jogador extra (19+)">
+      <button class="primary" onclick="addExtraPlayer()">Adicionar extra</button>
+      <p style="font-size:12px; color:#555; margin-top:8px;">Edita os nomes • Arrasta para o campo</p>
     </div>
   </div>
 
@@ -63,11 +67,12 @@
 
 <script>
 const field = document.getElementById("field");
-let draggedPlayer = null;
+let draggedElement = null;
 let offsetX, offsetY;
+let playerNames = Array(18).fill("");
 
 // =============================================
-//  Desenhar linhas do campo (círculo central, áreas)
+// Desenhar campo com linhas reais (SVG)
 // =============================================
 function drawFieldLines() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -79,74 +84,109 @@ function drawFieldLines() {
   svg.style.pointerEvents = "none";
 
   const w = 920, h = 520;
-  const lines = [
-    // Linhas exteriores já estão na borda
-    // Círculo central
-    `<circle cx="${w/2}" cy="${h/2}" r="45" fill="none" stroke="white" stroke-width="3" opacity="0.7"/>`,
-    // Área penal (aproximada)
-    `<rect x="${w*0.08}" y="${h*0.21}" width="${w*0.16}" height="${h*0.58}" fill="none" stroke="white" stroke-width="3" opacity="0.6"/>`,
-    `<rect x="${w*0.92 - w*0.16}" y="${h*0.21}" width="${w*0.16}" height="${h*0.58}" fill="none" stroke="white" stroke-width="3" opacity="0.6"/>`,
-    // Área pequena
-    `<rect x="${w*0.12}" y="${h*0.37}" width="${w*0.08}" height="${h*0.26}" fill="none" stroke="white" stroke-width="2" opacity="0.6"/>`,
-    `<rect x="${w*0.88 - w*0.08}" y="${h*0.37}" width="${w*0.08}" height="${h*0.26}" fill="none" stroke="white" stroke-width="2" opacity="0.6"/>`,
-  ];
+  const scale = (x) => x * w / 105;  // Campo FIFA ~105×68m
+  const lines = [];
+
+  // Contorno + meio-campo
+  lines.push(`<rect x="0" y="0" width="${w}" height="${h}" fill="none" stroke="#fff" stroke-width="4" opacity="0.8"/>`);
+  lines.push(`<line x1="${w/2}" y1="0" x2="${w/2}" y2="${h}" stroke="#fff" stroke-width="3" opacity="0.7"/>`);
+
+  // Círculo central
+  lines.push(`<circle cx="${w/2}" cy="${h/2}" r="${scale(9.15)}" fill="none" stroke="#fff" stroke-width="3" opacity="0.7"/>`);
+  lines.push(`<circle cx="${w/2}" cy="${h/2}" r="4" fill="#fff"/>`);
+
+  // Áreas penais (completo)
+  const penaltyAreaW = scale(16.5), penaltyAreaH = scale(40.3);
+  const goalAreaW   = scale(5.5),   goalAreaH   = scale(18.3);
+  lines.push(`<rect x="0" y="${(h-penaltyAreaH)/2}" width="${penaltyAreaW}" height="${penaltyAreaH}" fill="none" stroke="#fff" stroke-width="3" opacity="0.75"/>`);
+  lines.push(`<rect x="${w-penaltyAreaW}" y="${(h-penaltyAreaH)/2}" width="${penaltyAreaW}" height="${penaltyAreaH}" fill="none" stroke="#fff" stroke-width="3" opacity="0.75"/>`);
+  lines.push(`<rect x="0" y="${(h-goalAreaH)/2}" width="${goalAreaW}" height="${goalAreaH}" fill="none" stroke="#fff" stroke-width="2" opacity="0.75"/>`);
+  lines.push(`<rect x="${w-goalAreaW}" y="${(h-goalAreaH)/2}" width="${goalAreaW}" height="${goalAreaH}" fill="none" stroke="#fff" stroke-width="2" opacity="0.75"/>`);
+
+  // Pontos de penálti + semicírculos
+  lines.push(`<circle cx="${scale(11)}" cy="${h/2}" r="2" fill="#fff"/>`);
+  lines.push(`<circle cx="${w - scale(11)}" cy="${h/2}" r="2" fill="#fff"/>`);
+  lines.push(`<path d="M ${scale(11)} ${h/2} A ${scale(9.15)} ${scale(9.15)} 0 0 1 ${scale(11)+scale(18.3)} ${h/2 - scale(9.15)}" fill="none" stroke="#fff" stroke-width="3" opacity="0.7"/>`);
+  lines.push(`<path d="M ${w - scale(11)} ${h/2} A ${scale(9.15)} ${scale(9.15)} 0 0 0 ${w - scale(11)-scale(18.3)} ${h/2 - scale(9.15)}" fill="none" stroke="#fff" stroke-width="3" opacity="0.7"/>`);
 
   svg.innerHTML = lines.join("");
   field.appendChild(svg);
 }
 
 // =============================================
-// Inicializar plantel com 18 slots editáveis
+// Plantel numerado
 // =============================================
 function initPlantel() {
   const list = document.getElementById("playerList");
   list.innerHTML = "";
-  for (let i = 1; i <= 18; i++) {
-    const div = document.createElement("div");
-    div.className = "player-list";
-    div.contentEditable = true;
-    div.innerText = "";
-    div.dataset.index = i;
-    div.ondblclick = () => div.focus();
-    list.appendChild(div);
+  for (let i = 0; i < 18; i++) {
+    const slot = document.createElement("div");
+    slot.className = "player-slot";
+    slot.draggable = true;
+    slot.dataset.index = i;
+
+    const num = document.createElement("div");
+    num.className = "player-number";
+    num.innerText = i + 1;
+
+    const name = document.createElement("div");
+    name.className = "player-name";
+    name.contentEditable = true;
+    name.innerText = playerNames[i] || "";
+    name.oninput = () => { playerNames[i] = name.innerText.trim(); syncFieldNames(); };
+
+    slot.appendChild(num);
+    slot.appendChild(name);
+
+    slot.addEventListener("dragstart", (e) => {
+      draggedElement = slot;
+      e.dataTransfer.setData("text/plain", i);
+    });
+
+    list.appendChild(slot);
   }
 }
 
-// Adicionar jogador extra
-function addPlayer() {
-  const name = document.getElementById("newPlayer").value.trim();
-  if (!name) return;
-  const div = document.createElement("div");
-  div.className = "player-list";
-  div.contentEditable = true;
-  div.innerText = name;
-  document.getElementById("playerList").appendChild(div);
+function addExtraPlayer() {
+  const nameInput = document.getElementById("newPlayer").value.trim();
+  if (!nameInput) return;
+  const slot = document.createElement("div");
+  slot.className = "player-slot";
+  slot.draggable = true;
+
+  const num = document.createElement("div");
+  num.className = "player-number";
+  num.innerText = "?";
+
+  const name = document.createElement("div");
+  name.className = "player-name";
+  name.contentEditable = true;
+  name.innerText = nameInput;
+
+  slot.appendChild(num);
+  slot.appendChild(name);
+  slot.addEventListener("dragstart", (e) => {
+    draggedElement = slot;
+    e.dataTransfer.setData("text/plain", nameInput);
+  });
+
+  document.getElementById("playerList").appendChild(slot);
   document.getElementById("newPlayer").value = "";
 }
 
 // =============================================
-// Formações
+// Formações (posições base)
 // =============================================
 const formations = {
   "352Atual": [
-    [0.06, 0.50],   // 1  GR
-    [0.22, 0.32], [0.22, 0.50], [0.22, 0.68], // 2-4  Centrais
-    [0.42, 0.12], [0.42, 0.32], [0.42, 0.50], [0.42, 0.68], [0.42, 0.88], // 5-9  Médios
-    [0.70, 0.35], [0.70, 0.65]  // 10-11  Avançados
+    [0.06, 0.50], [0.22, 0.32], [0.22, 0.50], [0.22, 0.68],
+    [0.42, 0.12], [0.42, 0.32], [0.42, 0.50], [0.42, 0.68], [0.42, 0.88],
+    [0.70, 0.35], [0.70, 0.65]
   ],
-  "433": [
-    [0.06,0.5],
-    [0.20,0.25],[0.20,0.50],[0.20,0.75],[0.20,0.90],
-    [0.40,0.25],[0.40,0.50],[0.40,0.75],
-    [0.68,0.20],[0.68,0.50],[0.68,0.80]
-  ],
-  "442": [
-    [0.06,0.5],
-    [0.20,0.25],[0.20,0.50],[0.20,0.75],[0.20,0.90],
-    [0.42,0.20],[0.42,0.45],[0.42,0.55],[0.42,0.80],
-    [0.70,0.35],[0.70,0.65]
-  ]
-  // Podes adicionar mais...
+  "433": [[0.06,0.5],[0.20,0.25],[0.20,0.50],[0.20,0.75],[0.20,0.90],[0.40,0.25],[0.40,0.50],[0.40,0.75],[0.68,0.20],[0.68,0.50],[0.68,0.80]],
+  "442": [[0.06,0.5],[0.20,0.25],[0.20,0.50],[0.20,0.75],[0.20,0.90],[0.42,0.20],[0.42,0.45],[0.42,0.55],[0.42,0.80],[0.70,0.35],[0.70,0.65]],
+  "4231": [[0.06,0.5],[0.20,0.25],[0.20,0.50],[0.20,0.75],[0.20,0.90],[0.38,0.35],[0.38,0.65],[0.55,0.20],[0.55,0.40],[0.55,0.60],[0.72,0.50]],
+  "532": [[0.06,0.5],[0.18,0.20],[0.18,0.40],[0.18,0.60],[0.18,0.80],[0.18,0.95],[0.40,0.25],[0.40,0.50],[0.40,0.75],[0.68,0.35],[0.68,0.65]]
 };
 
 function generateFormation() {
@@ -160,124 +200,154 @@ function generateFormation() {
     const div = document.createElement("div");
     div.className = "player";
     div.contentEditable = true;
-    div.dataset.pos = i + 1;
-    div.innerText = "";
+    div.dataset.pos = (i + 1).toString();
+    div.dataset.plantelIndex = i;  // associa ao plantel 0-10
+    div.innerText = playerNames[i] || "";
     div.style.left = (p[0] * 920) + "px";
     div.style.top  = (p[1] * 520) + "px";
+
     makeDraggable(div);
     field.appendChild(div);
   });
 }
 
+function syncFieldNames() {
+  const players = field.querySelectorAll(".player");
+  players.forEach(p => {
+    const idx = parseInt(p.dataset.plantelIndex);
+    if (!isNaN(idx) && playerNames[idx] !== undefined) {
+      p.innerText = playerNames[idx];
+    }
+  });
+}
+
 // =============================================
-// Drag & Drop melhorado + snap
+// Drag & Drop (do plantel para campo + mover no campo)
 // =============================================
-function makeDraggable(el) {
-  function startDrag(e) {
-    e.preventDefault();
-    draggedPlayer = el;
-    const rect = el.getBoundingClientRect();
-    const fieldRect = field.getBoundingClientRect();
-    offsetX = (e.clientX || e.touches[0].clientX) - rect.left;
-    offsetY = (e.clientY || e.touches[0].clientY) - rect.top;
-    el.style.zIndex = 100;
+field.addEventListener("dragover", (e) => e.preventDefault());
+
+field.addEventListener("drop", (e) => {
+  e.preventDefault();
+  if (!draggedElement) return;
+
+  const data = e.dataTransfer.getData("text/plain");
+  let name = "";
+  let index = parseInt(data);
+
+  if (!isNaN(index)) {
+    name = playerNames[index] || document.querySelectorAll(".player-name")[index].innerText.trim();
+  } else {
+    name = data; // extra player
   }
 
-  function moveDrag(e) {
-    if (!draggedPlayer) return;
+  // Cria ou atualiza jogador no campo
+  const existing = Array.from(field.querySelectorAll(".player")).find(p => p.dataset.plantelIndex == index);
+  if (existing) {
+    existing.innerText = name;
+    return;
+  }
+
+  // Novo jogador no local do drop
+  const rect = field.getBoundingClientRect();
+  const div = document.createElement("div");
+  div.className = "player";
+  div.contentEditable = true;
+  div.innerText = name;
+  div.dataset.pos = "?";
+  if (!isNaN(index)) div.dataset.plantelIndex = index;
+
+  let left = e.clientX - rect.left - 38;
+  let top  = e.clientY - rect.top  - 23;
+  left = Math.max(0, Math.min(920-76, Math.round(left/20)*20));
+  top  = Math.max(0, Math.min(520-46, Math.round(top/20)*20));
+
+  div.style.left = left + "px";
+  div.style.top  = top + "px";
+
+  makeDraggable(div);
+  field.appendChild(div);
+});
+
+function makeDraggable(el) {
+  let isDragging = false;
+
+  const start = (e) => {
+    isDragging = true;
+    const clientX = e.clientX || e.touches?.[0].clientX;
+    const clientY = e.clientY || e.touches?.[0].clientY;
+    offsetX = clientX - el.getBoundingClientRect().left;
+    offsetY = clientY - el.getBoundingClientRect().top;
+    el.style.zIndex = 100;
+  };
+
+  const move = (e) => {
+    if (!isDragging) return;
     e.preventDefault();
-    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    const clientX = e.clientX || e.touches?.[0].clientX;
+    const clientY = e.clientY || e.touches?.[0].clientY;
     let newLeft = clientX - offsetX - field.getBoundingClientRect().left;
     let newTop  = clientY - offsetY - field.getBoundingClientRect().top;
 
-    // Snap simples a cada 20px
     newLeft = Math.round(newLeft / 20) * 20;
     newTop  = Math.round(newTop  / 20) * 20;
+    newLeft = Math.max(0, Math.min(920-76, newLeft));
+    newTop  = Math.max(0, Math.min(520-46, newTop));
 
-    // Limites
-    newLeft = Math.max(0, Math.min(920 - 72, newLeft));
-    newTop  = Math.max(0, Math.min(520 - 44, newTop));
+    el.style.left = newLeft + "px";
+    el.style.top  = newTop + "px";
+  };
 
-    draggedPlayer.style.left = newLeft + "px";
-    draggedPlayer.style.top  = newTop  + "px";
-  }
+  const end = () => { isDragging = false; };
 
-  function endDrag() {
-    draggedPlayer = null;
-  }
-
-  el.addEventListener("mousedown", startDrag);
-  el.addEventListener("touchstart", startDrag, {passive:false});
-
-  document.addEventListener("mousemove", moveDrag);
-  document.addEventListener("touchmove", moveDrag, {passive:false});
-  document.addEventListener("mouseup", endDrag);
-  document.addEventListener("touchend", endDrag);
+  el.addEventListener("mousedown", start);
+  el.addEventListener("touchstart", start, {passive:false});
+  document.addEventListener("mousemove", move);
+  document.addEventListener("touchmove", move, {passive:false});
+  document.addEventListener("mouseup", end);
+  document.addEventListener("touchend", end);
 }
 
-// =============================================
 // Limpar / Reset
-// =============================================
 function clearPositions() {
-  const players = field.querySelectorAll(".player");
-  players.forEach(p => {
-    p.innerText = "";
-  });
+  field.querySelectorAll(".player").forEach(p => p.remove());
 }
 
 function resetAll() {
-  if (!confirm("Reset total? Perdes tudo.")) return;
-  document.getElementById("teamName").value = "";
-  document.getElementById("opponent").value = "";
+  if (!confirm("Reset total?")) return;
+  document.querySelectorAll("input:not([type='date'])").forEach(el => el.value = "");
   document.getElementById("matchDate").value = "";
-  document.getElementById("competition").value = "";
+  playerNames.fill("");
+  initPlantel();
   clearPositions();
-  generateFormation();
 }
 
-// =============================================
-// PDF com legenda
-// =============================================
+// PDF (igual ao anterior, mas podes melhorar depois)
 async function downloadPDF() {
   const { jsPDF } = window.jspdf;
-  const canvas = await html2canvas(field, {scale:3, useCORS:true, backgroundColor:null});
+  const canvas = await html2canvas(field, {scale:3, backgroundColor:null});
   const imgData = canvas.toDataURL("image/png");
-
   const pdf = new jsPDF({orientation:"landscape", unit:"mm", format:"a4"});
-  const startX = 12, startY = 12, cellW = 55, cellH = 9;
 
   const info = [
-    ["Equipa",     document.getElementById("teamName").value     || "—"],
-    ["Adversário", document.getElementById("opponent").value     || "—"],
-    ["Competição", document.getElementById("competition").value  || "—"],
-    ["Data",       document.getElementById("matchDate").value    || "—"],
-    ["Formação",   document.getElementById("formation").value    || "—"]
+    ["Equipa", document.getElementById("teamName").value || "—"],
+    ["Adversário", document.getElementById("opponent").value || "—"],
+    ["Data", document.getElementById("matchDate").value || "—"],
+    ["Competição", document.getElementById("competition").value || "—"],
+    ["Formação", document.getElementById("formation").value || "—"]
   ];
 
-  info.forEach((row, i) => {
-    pdf.setFillColor(230, 245, 235);
-    pdf.rect(startX, startY + i*cellH, cellW*3, cellH, "F");
-    pdf.setDrawColor(100);
-    pdf.rect(startX, startY + i*cellH, cellW, cellH);
-    pdf.rect(startX + cellW, startY + i*cellH, cellW*2, cellH);
-    pdf.setFontSize(11);
-    pdf.text(row[0], startX + 3, startY + i*cellH + 6.5);
-    pdf.text(row[1].substring(0,38), startX + cellW + 3, startY + i*cellH + 6.5);
+  let y = 12;
+  info.forEach(([label, val]) => {
+    pdf.text(`${label}: ${val}`, 12, y);
+    y += 8;
   });
 
-  const imgW = 270;
-  const imgH = (canvas.height / canvas.width) * imgW;
-  pdf.addImage(imgData, "PNG", 10, startY + info.length*cellH + 8, imgW, imgH);
-
-  pdf.save("TactiBoard_CampoVerde.pdf");
+  pdf.addImage(imgData, "PNG", 10, y + 5, 270, 270 * (canvas.height/canvas.width));
+  pdf.save("TactiBoard.pdf");
 }
 
-// =============================================
 // Início
-// =============================================
 initPlantel();
-generateFormation();
 drawFieldLines();
 </script>
 </body>
