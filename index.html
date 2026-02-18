@@ -6,45 +6,28 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-  body { margin:0; font-family:'Segoe UI',sans-serif; background:#f8f9fa; color:#111; }
-  header { padding:16px; background:#22c55e; text-align:center; font-size:26px; font-weight:bold; color:white; }
-  .container { display:flex; gap:20px; padding:16px; max-width:100%; margin:auto; flex-wrap:wrap; }
-  .sidebar { width:320px; min-width:280px; background:#e0f2e9; padding:16px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1); }
-  .sidebar input, .sidebar select, .sidebar button { width:100%; margin:8px 0; padding:10px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box; font-size:14px; }
-  .sidebar button.primary   { background:#16a34a; color:white; border:none; cursor:pointer; }
-  .sidebar button.secondary { background:#6b7280; color:white; border:none; cursor:pointer; }
-  .sidebar button.danger    { background:#ef4444; color:white; border:none; cursor:pointer; }
-  .sidebar button.active    { background:#eab308; color:black; }
+body { margin:0; font-family:'Segoe UI',sans-serif; background:#f8f9fa; color:#111; }
+header { padding:16px; background:#22c55e; text-align:center; font-size:26px; font-weight:bold; color:white; }
+.container { display:flex; gap:24px; padding:20px; max-width:1400px; margin:auto; flex-wrap:wrap; }
+.sidebar { width:340px; background:#e0f2e9; padding:20px; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.08); }
+.sidebar input, .sidebar select { width:100%; margin-bottom:12px; padding:10px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box; }
+.sidebar button { width:100%; padding:12px; margin:6px 0; border:none; border-radius:8px; font-weight:bold; cursor:pointer; }
+.sidebar button.primary   { background:#16a34a; color:white; }
+.sidebar button.secondary { background:#6b7280; color:white; }
+.sidebar button.danger    { background:#ef4444; color:white; }
 
-  .player-slot { display:flex; align-items:center; background:white; border:1px solid #ddd; border-radius:6px; margin:6px 0; padding:6px; font-weight:bold; cursor:grab; }
-  .player-number { width:36px; text-align:center; background:#dcfce7; border-radius:4px; padding:4px 0; margin-right:8px; color:#166534; }
-  .player-name { flex:1; padding:6px; min-height:24px; }
-  .player-name:focus { outline:2px solid #16a34a; background:#f0fdf4; }
+.player-slot { display:flex; align-items:center; background:white; border:1px solid #ddd; border-radius:6px; margin:6px 0; padding:6px; font-weight:bold; cursor:grab; }
+.player-number { width:36px; text-align:center; background:#dcfce7; border-radius:4px; padding:4px 0; margin-right:8px; color:#166534; font-size:15px; }
+.player-name { flex:1; padding:6px; border-radius:4px; min-height:24px; }
+.player-name[contenteditable="true"]:focus { outline:2px solid #16a34a; background:#f0fdf4; }
 
-  .field-container { flex:1; min-width:600px; text-align:center; }
-  .field { width:100%; max-width:920px; height:520px; background:#86efac; margin:0 auto; position:relative; border:4px solid #14532d; border-radius:8px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.15); }
+.field-container { flex:1; text-align:center; min-width:600px; }
+.field { width:920px; height:520px; background:#86efac; margin:auto; position:relative; border:4px solid #14532d; border-radius:8px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.15); background-size:20px 20px; background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px); }
 
-  .player { 
-    position:absolute; width:76px; height:46px; border-radius:10px; 
-    text-align:center; line-height:46px; font-size:13px; font-weight:bold; 
-    cursor:move; background:rgba(255,255,255,0.94); color:#111; 
-    border:1px solid #555; box-shadow:0 2px 8px rgba(0,0,0,0.25); 
-    user-select:none; pointer-events:auto; 
-  }
-  .player.opponent {
-    width: 52px; height: 52px; border-radius: 50%; 
-    background: rgba(239, 68, 68, 0.88); color: white; 
-    line-height: 52px; font-size: 15px; border: 2px solid #991b1b; 
-    cursor: default; pointer-events: none;
-  }
-  .player::before { 
-    content:attr(data-pos); position:absolute; top:-20px; left:50%; 
-    transform:translateX(-50%); font-size:11px; color:#222; font-weight:normal; 
-  }
-  .player.opponent::before { color: #7f1d1d; font-size: 13px; top: -22px; }
+.player { position:absolute; width:76px; height:46px; border-radius:10px; text-align:center; line-height:46px; font-size:13px; font-weight:bold; cursor:move; background:rgba(255,255,255,0.94); color:#111; border:1px solid #555; box-shadow:0 2px 8px rgba(0,0,0,0.25); user-select:none; }
+.player::before { content:attr(data-pos); position:absolute; top:-20px; left:50%; transform:translateX(-50%); font-size:11px; color:#222; font-weight:normal; }
+.player:hover::after { content:attr(data-pos); position:absolute; top:-22px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.7); color:white; padding:2px 5px; border-radius:4px; font-size:10px; pointer-events:none; }
 
-  .drawing-layer { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; }
-  .status { margin:8px 0; font-size:13px; color:#555; min-height:20px; }
 </style>
 </head>
 <body>
@@ -55,46 +38,33 @@
   <div class="sidebar">
     <input type="text" id="teamName" placeholder="Nome da Equipa">
     <input type="text" id="opponent" placeholder="Adversário">
+    <input type="date" id="matchDate">
+    <input type="text" id="competition" placeholder="Competição">
 
     <select id="formation" onchange="generateFormation()">
-      <option value="352Atual" selected>3-5-2 (Nossa equipa)</option>
+      <option value="352Atual" selected>3-5-2 ATUAL</option>
       <option value="433">4-3-3</option>
       <option value="442">4-4-2</option>
       <option value="4231">4-2-3-1</option>
       <option value="532">5-3-2</option>
     </select>
 
-    <select id="opponentFormation" onchange="updateOpponent()">
-      <option value="none" selected>Sem adversário</option>
-      <option value="352Atual">3-5-2</option>
-      <option value="433">4-3-3</option>
-      <option value="442">4-4-2</option>
-      <option value="4231">4-2-3-1</option>
-      <option value="532">5-3-2</option>
-    </select>
-
-    <label style="display:block; margin:12px 0;">
-      <input type="checkbox" id="showOpponent" onchange="updateOpponent()"> Mostrar equipa adversária
-    </label>
-
-    <button class="primary" onclick="generateFormation()">Aplicar formação nossa</button>
-    <button class="secondary" onclick="clearPositions()">Limpar posições nossas</button>
+    <button class="primary" onclick="generateFormation()">Aplicar Formação</button>
+    <button class="secondary" onclick="clearPositions()">Limpar posições</button>
     <button class="danger" onclick="resetAll()">Reset total</button>
+    <button class="primary" onclick="downloadPDF()">Download PDF</button>
 
-    <div style="margin-top:20px;">
+    <div style="margin-top:24px;">
       <h3>Plantel (1–18)</h3>
       <div id="playerList"></div>
-      <input type="text" id="newPlayer" placeholder="Jogador extra (19+)">
-      <button class="primary" onclick="addExtraPlayer()">Adicionar</button>
+      <input type="text" id="newPlayer" placeholder="Adicionar jogador extra (19+)">
+      <button class="primary" onclick="addExtraPlayer()">Adicionar extra</button>
+      <p style="font-size:12px; color:#555; margin-top:8px;">Edita os nomes • Arrasta para ajustar</p>
     </div>
-
-    <button class="primary" style="margin-top:16px;" onclick="downloadPDF()">Download PDF</button>
   </div>
 
   <div class="field-container">
-    <div class="field" id="field">
-      <svg class="drawing-layer" id="drawingLayer"></svg>
-    </div>
+    <div class="field" id="field"></div>
   </div>
 </div>
 
@@ -104,141 +74,183 @@ let draggedElement = null;
 let offsetX, offsetY;
 let playerNames = Array(18).fill("");
 
-// Formações (posições relativas 0–1)
-const formations = {
-  "352Atual": [
-    [0.06, 0.50], [0.22, 0.32], [0.22, 0.50], [0.22, 0.68],
-    [0.42, 0.12], [0.42, 0.32], [0.42, 0.50], [0.42, 0.68], [0.42, 0.88],
-    [0.70, 0.35], [0.70, 0.65]
-  ],
-  "433": [[0.06,0.5],[0.20,0.25],[0.20,0.50],[0.20,0.75],[0.20,0.90],[0.40,0.25],[0.40,0.50],[0.40,0.75],[0.68,0.20],[0.68,0.50],[0.68,0.80]],
-  "442": [[0.06,0.5],[0.20,0.25],[0.20,0.50],[0.20,0.75],[0.20,0.90],[0.42,0.20],[0.42,0.45],[0.42,0.55],[0.42,0.80],[0.70,0.35],[0.70,0.65]],
-  "4231": [[0.06,0.5],[0.20,0.25],[0.20,0.50],[0.20,0.75],[0.20,0.90],[0.38,0.35],[0.38,0.65],[0.55,0.20],[0.55,0.40],[0.55,0.60],[0.72,0.50]],
-  "532": [[0.06,0.5],[0.18,0.20],[0.18,0.40],[0.18,0.60],[0.18,0.80],[0.18,0.95],[0.40,0.25],[0.40,0.50],[0.40,0.75],[0.68,0.35],[0.68,0.65]]
-};
-
-// Desenhar linhas do campo (versão simplificada – podes manter a versão completa anterior)
+// Desenhar linhas do campo
 function drawFieldLines() {
-  // Aqui vai a função drawFieldLines() completa que já tinhas (SVG com linhas FIFA)
-  // Por brevidade estou a omitir, mas mantém a que já funciona corretamente no teu código
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("width", "100%");
-  svg.setAttribute("height", "100%");
-  svg.style.position = "absolute";
-  svg.style.top = "0";
-  svg.style.left = "0";
-  svg.style.pointerEvents = "none";
-  // ... adiciona as linhas aqui (contorno, meio-campo, áreas, etc.)
-  field.insertBefore(svg, field.firstChild);
+  svg.setAttribute("width","100%");
+  svg.setAttribute("height","100%");
+  svg.style.position="absolute";
+  svg.style.top="0";
+  svg.style.left="0";
+  svg.style.pointerEvents="none";
+
+  const w = 920, h = 520;
+  const scaleX = w/105, scaleY = h/68;
+  const lines=[];
+
+  // Campo
+  lines.push(`<rect x="0" y="0" width="${w}" height="${h}" fill="none" stroke="#ffffff" stroke-width="4" opacity="0.85"/>`);
+  // Meio campo
+  lines.push(`<line x1="${w/2}" y1="0" x2="${w/2}" y2="${h}" stroke="#ffffff" stroke-width="3" opacity="0.75"/>`);
+  // Círculo central
+  lines.push(`<circle cx="${w/2}" cy="${h/2}" r="${9.15*scaleX}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.75"/>`);
+  lines.push(`<circle cx="${w/2}" cy="${h/2}" r="3" fill="#ffffff"/>`);
+  // Áreas grandes
+  const paDepth=16.5*scaleX, paWidth=40.32*scaleY;
+  lines.push(`<rect x="0" y="${(h-paWidth)/2}" width="${paDepth}" height="${paWidth}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
+  lines.push(`<rect x="${w-paDepth}" y="${(h-paWidth)/2}" width="${paDepth}" height="${paWidth}" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>`);
+  // Áreas pequenas
+  const gaDepth=5.5*scaleX, gaWidth=18.32*scaleY;
+  lines.push(`<rect x="0" y="${(h-gaWidth)/2}" width="${gaDepth}" height="${gaWidth}" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.8"/>`);
+  lines.push(`<rect x="${w-gaDepth}" y="${(h-gaWidth)/2}" width="${gaDepth}" height="${gaWidth}" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.8"/>`);
+  // Pontapé de penalti
+  const penSpot=11*scaleX;
+  lines.push(`<circle cx="${penSpot}" cy="${h/2}" r="2.5" fill="#ffffff"/>`);
+  lines.push(`<circle cx="${w-penSpot}" cy="${h/2}" r="2.5" fill="#ffffff"/>`);
+
+  svg.innerHTML=lines.join("\n");
+  field.appendChild(svg);
 }
 
-// Plantel nossa equipa
+// Plantel
 function initPlantel() {
   const list = document.getElementById("playerList");
-  list.innerHTML = "";
-  for (let i = 0; i < 18; i++) {
+  list.innerHTML="";
+  for(let i=0;i<18;i++){
     const slot = document.createElement("div");
-    slot.className = "player-slot";
-    slot.draggable = true;
-    slot.dataset.index = i;
+    slot.className="player-slot";
+    slot.draggable=true;
+    slot.dataset.index=i;
 
     const num = document.createElement("div");
-    num.className = "player-number";
-    num.innerText = i + 1;
+    num.className="player-number";
+    num.innerText=i+1;
 
     const nameDiv = document.createElement("div");
-    nameDiv.className = "player-name";
-    nameDiv.contentEditable = true;
-    nameDiv.innerText = playerNames[i] || "";
-    nameDiv.oninput = () => {
-      playerNames[i] = nameDiv.innerText.trim();
-      syncFieldNames();
-    };
+    nameDiv.className="player-name";
+    nameDiv.contentEditable=true;
+    nameDiv.innerText=playerNames[i]||"";
+    nameDiv.oninput=()=>{ playerNames[i]=nameDiv.innerText.trim(); syncFieldNames(); };
 
     slot.appendChild(num);
     slot.appendChild(nameDiv);
-
-    slot.addEventListener("dragstart", e => {
-      draggedElement = slot;
-      e.dataTransfer.setData("text/plain", i.toString());
-    });
-
+    slot.addEventListener("dragstart", e=>{ draggedElement=slot; e.dataTransfer.setData("text/plain", i.toString()); });
     list.appendChild(slot);
   }
 }
 
-// Gerar / atualizar nossa equipa
-function generateFormation() {
-  field.querySelectorAll(".player:not(.opponent)").forEach(p => p.remove());
+function addExtraPlayer(){
+  const val=document.getElementById("newPlayer").value.trim();
+  if(!val) return;
+  const slot=document.createElement("div");
+  slot.className="player-slot"; slot.draggable=true;
+  const num=document.createElement("div"); num.className="player-number"; num.innerText="?";
+  const nameDiv=document.createElement("div"); nameDiv.className="player-name"; nameDiv.contentEditable=true; nameDiv.innerText=val;
+  slot.appendChild(num); slot.appendChild(nameDiv);
+  slot.addEventListener("dragstart", e=>{ draggedElement=slot; e.dataTransfer.setData("text/plain","extra:"+val); });
+  document.getElementById("playerList").appendChild(slot);
+  document.getElementById("newPlayer").value="";
+}
 
+// Formações
+const formations={
+  "352Atual":[[0.06,0.50],[0.22,0.32],[0.22,0.50],[0.22,0.68],[0.42,0.12],[0.42,0.32],[0.42,0.50],[0.42,0.68],[0.42,0.88],[0.70,0.35],[0.70,0.65]],
+  "433":[[0.06,0.5],[0.20,0.25],[0.20,0.50],[0.20,0.75],[0.20,0.90],[0.40,0.25],[0.40,0.50],[0.40,0.75],[0.68,0.20],[0.68,0.50],[0.68,0.80]],
+  "442":[[0.06,0.5],[0.20,0.25],[0.20,0.50],[0.20,0.75],[0.20,0.90],[0.42,0.20],[0.42,0.45],[0.42,0.55],[0.42,0.80],[0.70,0.35],[0.70,0.65]],
+  "4231":[[0.06,0.5],[0.20,0.25],[0.20,0.50],[0.20,0.75],[0.20,0.90],[0.38,0.35],[0.38,0.65],[0.55,0.20],[0.55,0.40],[0.55,0.60],[0.72,0.50]],
+  "532":[[0.06,0.5],[0.18,0.20],[0.18,0.40],[0.18,0.60],[0.18,0.80],[0.18,0.95],[0.40,0.25],[0.40,0.50],[0.40,0.75],[0.68,0.35],[0.68,0.65]]
+};
+
+function generateFormation() {
+  field.innerHTML="";
+  drawFieldLines();
   const key = document.getElementById("formation").value;
   const posArray = formations[key] || formations["352Atual"];
-
-  posArray.forEach((relPos, i) => {
-    if (i >= 11) return;
-    const div = document.createElement("div");
-    div.className = "player";
-    div.contentEditable = true;
-    div.dataset.pos = (i + 1).toString();
-    div.dataset.plantelIndex = i.toString();
-    div.innerText = playerNames[i] || "";
-    div.style.left = (relPos[0] * field.clientWidth) + "px";
-    div.style.top  = (relPos[1] * 520) + "px";
+  posArray.forEach((relPos,i)=>{
+    if(i>=11) return;
+    const div=document.createElement("div");
+    div.className="player"; div.contentEditable=true;
+    div.dataset.pos=(i+1).toString(); div.dataset.plantelIndex=i.toString();
+    div.innerText=playerNames[i]||"";
+    div.style.left=(relPos[0]*920)+"px"; div.style.top=(relPos[1]*520)+"px";
     makeDraggable(div);
     field.appendChild(div);
   });
 }
 
-// Atualizar adversário (bolinhas vermelhas)
-function updateOpponent() {
-  field.querySelectorAll(".opponent").forEach(el => el.remove());
-
-  const show = document.getElementById("showOpponent").checked;
-  if (!show) return;
-
-  const key = document.getElementById("opponentFormation").value;
-  if (key === "none") return;
-
-  const posArray = formations[key] || formations["352Atual"];
-
-  posArray.forEach((relPos, i) => {
-    if (i >= 11) return;
-    const div = document.createElement("div");
-    div.className = "player opponent";
-    div.dataset.pos = (i + 1).toString();
-    div.innerText = i + 1;
-    div.style.left = (relPos[0] * field.clientWidth) + "px";
-    div.style.top  = (relPos[1] * 520) + "px";
-    field.appendChild(div);
-  });
-}
-
-// Sincronizar nomes da nossa equipa
 function syncFieldNames() {
-  document.querySelectorAll(".player:not(.opponent)").forEach(p => {
-    const idx = parseInt(p.dataset.plantelIndex);
-    if (!isNaN(idx) && playerNames[idx] !== undefined) {
-      p.innerText = playerNames[idx];
-    }
+  document.querySelectorAll(".player").forEach(p=>{
+    const idx=parseInt(p.dataset.plantelIndex);
+    if(!isNaN(idx) && playerNames[idx]!==undefined) p.innerText=playerNames[idx];
   });
 }
 
-// Drag & drop (só para nossa equipa – adversário não arrasta)
-field.addEventListener("dragover", e => e.preventDefault());
-
-field.addEventListener("drop", e => {
+// Drag & Drop
+field.addEventListener("dragover", e=>e.preventDefault());
+field.addEventListener("drop", e=>{
   e.preventDefault();
-  if (!draggedElement) return;
-  // ... mantém a lógica de drop que já tinhas (adicionar/mover nossa equipa)
+  if(!draggedElement) return;
+  const data=e.dataTransfer.getData("text/plain");
+  let name="", plantelIdx=null;
+  if(data.startsWith("extra:")) { name=data.substring(6); }
+  else { const idx=parseInt(data); if(!isNaN(idx)){ plantelIdx=idx; name=playerNames[idx]||""; } }
+  const rect=field.getBoundingClientRect();
+  let left=e.clientX-rect.left-38, top=e.clientY-rect.top-23;
+  left=Math.max(0,Math.min(920-76,Math.round(left/20)*20));
+  top=Math.max(0,Math.min(520-46,Math.round(top/20)*20));
+  let existing=null;
+  if(plantelIdx!==null) existing=field.querySelector(`.player[data-plantel-index="${plantelIdx}"]`);
+  if(existing){ existing.innerText=name; existing.style.left=left+"px"; existing.style.top=top+"px"; return; }
+  const div=document.createElement("div"); div.className="player"; div.contentEditable=true; div.innerText=name;
+  div.dataset.pos="?"; if(plantelIdx!==null) div.dataset.plantelIndex=plantelIdx;
+  div.style.left=left+"px"; div.style.top=top+"px"; makeDraggable(div); field.appendChild(div);
 });
 
-// makeDraggable (igual ao anterior – só para .player não .opponent)
+function makeDraggable(el){
+  let isDragging=false;
+  const start=e=>{
+    isDragging=true;
+    const clientX=e.clientX|| (e.touches && e.touches[0].clientX);
+    const clientY=e.clientY|| (e.touches && e.touches[0].clientY);
+    const rect=el.getBoundingClientRect();
+    offsetX=clientX-rect.left; offsetY=clientY-rect.top; el.style.zIndex=100; e.preventDefault();
+  };
+  const move=e=>{
+    if(!isDragging) return;
+    e.preventDefault();
+    const clientX=e.clientX|| (e.touches && e.touches[0].clientX);
+    const clientY=e.clientY|| (e.touches && e.touches[0].clientY);
+    let newLeft=clientX-offsetX-field.getBoundingClientRect().left;
+    let newTop=clientY-offsetY-field.getBoundingClientRect().top;
+    newLeft=Math.round(newLeft/20)*20; newTop=Math.round(newTop/20)*20;
+    newLeft=Math.max(0,Math.min(920-76,newLeft)); newTop=Math.max(0,Math.min(520-46,newTop));
+    el.style.left=newLeft+"px"; el.style.top=newTop+"px";
+  };
+  const end=()=>isDragging=false;
+  el.addEventListener("mousedown",start); el.addEventListener("touchstart",start,{passive:false});
+  document.addEventListener("mousemove",move); document.addEventListener("touchmove",move,{passive:false});
+  document.addEventListener("mouseup",end); document.addEventListener("touchend",end);
+}
 
-// Inicialização
-initPlantel();
-drawFieldLines();
-generateFormation();
-updateOpponent();
-</script>
-</body>
-</html>
+// Limpar / Reset
+function clearPositions(){ field.innerHTML=""; drawFieldLines(); }
+function resetAll(){
+  if(!confirm("Reset total? Perdes tudo.")) return;
+  document.getElementById("teamName").value="";
+  document.getElementById("opponent").value="";
+  document.getElementById("matchDate").value="";
+  document.getElementById("competition").value="";
+  playerNames.fill(""); initPlantel(); generateFormation();
+}
+
+// PDF
+async function downloadPDF(){
+  const { jsPDF }=window.jspdf;
+  const canvas=await html2canvas(field,{scale:3,backgroundColor:null});
+  const imgData=canvas.toDataURL("image/png");
+  const pdf=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+  let y=12;
+  const info=[
+    ["Equipa",document.getElementById("teamName").value||"—"],
+    ["Adversário",document.getElementById("opponent").value||"—"],
+    ["Data",document.getElementById("match
